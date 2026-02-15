@@ -15,7 +15,12 @@ import PageNotFound from "./pages/PageNotFound";
 import AppLayout from "./ui/AppLayout";
 
 const queryClient = new QueryClient({
-  defaultOptions: {},
+  defaultOptions: {
+    queries: {
+      // staleTime: 1000 * 60,
+      staleTime: 0,
+    },
+  },
 });
 
 function App() {
