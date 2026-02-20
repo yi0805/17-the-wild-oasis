@@ -14,7 +14,7 @@ export async function login({ email, password }) {
 
 export async function getCurrentuser() {
   const { data: session } = await supabase.auth.getSession();
-  if (!session.session) {
+  if (!session?.session) {
     return null;
   }
 
@@ -23,5 +23,6 @@ export async function getCurrentuser() {
   if (error) {
     throw new Error(error.message);
   }
+
   return data?.user;
 }
