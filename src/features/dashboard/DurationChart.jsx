@@ -162,6 +162,7 @@ function DurationChart({ confirmedStays }) {
             cx="40%"
             cy="50%"
             paddingAngle={3}
+            dataKey="value"
           >
             {data.map((entry) => (
               <Cell
