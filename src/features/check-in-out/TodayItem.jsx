@@ -27,7 +27,6 @@ const Guest = styled.div`
 
 function TodayItem({ activity }) {
   const { id, status, guests, numNights } = activity;
-  console.log(status);
 
   return (
     <StyledTodayItem>
