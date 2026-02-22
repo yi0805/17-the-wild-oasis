@@ -4,7 +4,6 @@ import { useCheckout } from "./useCheckOut";
 
 function CheckoutButton({ bookingId }) {
   const { checkout, isCheckingOut } = useCheckout();
-  console.log("CheckoutButton rendered with bookingId:", bookingId);
 
   return (
     <Button
