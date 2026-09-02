@@ -99,7 +99,7 @@ npm run preview
 
 ### Roles
 
-- ChatGPT: planning, architecture discussion, task definition, and final code review.
+- ChatGPT: planning, architecture discussion, task definition, and task approval.
 - Codex: implementation, testing, Git operations, handoff documentation, and Pull Request creation.
 - GitHub: the source of truth for code history, branches, commits, diffs, Pull Requests, and delivery.
 - Human: the final decision-maker; only a human may decide to merge a Pull Request.
@@ -148,11 +148,20 @@ A handoff is an accurate summary for the next Codex session and ChatGPT review. 
 After implementation and verification:
 
 1. Review the diff and `git add` only the intended files.
-2. Commit the task with a clear commit message.
-3. Push the task branch to GitHub and create a Pull Request targeting `main`; Codex must not merge it.
-4. The completion report must include the task, branch name, commit hash, Pull Request URL, changed files, actual verification, handoff file path, and known risks/unresolved issues.
+2. Create or update the task handoff after the final diff review and before committing.
+3. Commit the task with a clear commit message.
+4. Push the completed task branch to GitHub.
+5. Only after implementation, verification, the handoff, commit, and push are complete, create a Pull Request targeting `main`. Do not open a Pull Request early merely to expose work in progress; its opening triggers the configured native Codex review.
+6. The completion report must include the task, branch name, commit hash, Pull Request URL, changed files, actual verification, handoff file path, and known risks/unresolved issues.
 
-The human sends the Pull Request to ChatGPT for independent review, then makes the final merge decision.
+### Native Codex Pull Request Review
+
+Native Codex automatic code review is configured outside this repository through Codex GitHub code-review settings. For this repository, review is triggered when a Pull Request opens; the repository code does not enable the feature.
+
+- Opening a task Pull Request triggers the first native Codex review. Findings are posted to GitHub for the human to review.
+- Do not add or restore a custom GitHub Actions Codex review workflow, `OPENAI_API_KEY`, API-billed `openai/codex-action`, or a `chatgpt-review` label. The earlier experimental GitHub Actions/API review Pull Request was closed without merge, and its branch was deleted.
+- Do not assume that pushing further commits automatically requests another review. After a blocking finding is addressed, the human may manually request another native Codex review from the Pull Request.
+- The human retains final merge authority. Codex must never automatically merge a Pull Request.
 
 ## Codex Working Rules
 
