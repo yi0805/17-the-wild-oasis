@@ -147,8 +147,8 @@ A handoff is an accurate summary for the next Codex session, native Codex Pull R
 
 After implementation and verification:
 
-1. Review the diff and `git add` only the intended files.
-2. Create or update the task handoff after the final diff review and before committing.
+1. Create or update the task handoff.
+2. Immediately before committing, review the final diff, including the handoff, and `git add` only the intended files.
 3. Commit the task with a clear commit message.
 4. Push the completed task branch to GitHub.
 5. Only after implementation, verification, the handoff, commit, and push are complete, create a Pull Request targeting `main`. Do not open a Pull Request early merely to expose work in progress; its opening triggers the configured native Codex review.
