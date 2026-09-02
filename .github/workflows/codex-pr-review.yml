@@ -49,7 +49,7 @@ jobs:
               pull_number: prNumber,
             });
             const [checks, status] = await Promise.all([
-              github.paginate(github.rest.checks.listForRef, {
+              github.rest.checks.listForRef({
                 owner,
                 repo,
                 ref: pr.head.sha,
@@ -77,8 +77,8 @@ jobs:
               "",
               "## Check runs available when this review started",
               "",
-              ...(checks.length
-                ? checks.map((check) =>
+              ...(checks.data.check_runs.length
+                ? checks.data.check_runs.map((check) =>
                     `- ${check.name}: ${check.status}${check.conclusion ? ` / ${check.conclusion}` : ""}`
                   )
                 : ["- None reported."]),
