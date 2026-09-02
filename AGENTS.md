@@ -141,7 +141,7 @@ The file must contain:
 ## Next
 ```
 
-A handoff is an accurate summary for the next Codex session and ChatGPT review. It does not replace proper code, tests, commit history, or a Pull Request description. Its content must match the actual Git diff and repository history.
+A handoff is an accurate summary for the next Codex session, native Codex Pull Request review, and the human final merge decision. It does not replace proper code, tests, commit history, or a Pull Request description. Its content must match the actual Git diff and repository history.
 
 ### Commit, Pull Request and Completion Report
 
