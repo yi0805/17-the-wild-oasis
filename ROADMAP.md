@@ -2,47 +2,47 @@
 
 ## Project Goal
 
-将 The Wild Oasis 发展为一个以营运人员为目标的 **React + TypeScript operations dashboard**：它应清晰展示可维护的 frontend architecture、可靠的 server-state/data mutations、经验证的 Supabase authorization，以及测试与 CI 的工程工作流。
+Develop The Wild Oasis into a **React + TypeScript operations dashboard** for operations staff. It should clearly demonstrate maintainable frontend architecture, reliable server-state/data mutations, verified Supabase authorization, and an engineering workflow with testing and CI.
 
-完成后的招聘者应能在短时间内看见以下四项信号：
+On completion, a recruiter should quickly see these four signals:
 
-1. React + TypeScript 的组件、domain model 与 data-access 设计；
-2. TanStack Query、React Hook Form 和明确的 loading / error / empty state；
-3. Supabase Auth、RLS 与 Storage policy 的真实 security boundary；
-4. 面向关键业务流程的 automated tests 与 GitHub Actions CI。
+1. React + TypeScript component, domain-model, and data-access design;
+2. TanStack Query, React Hook Form, and explicit loading/error/empty states;
+3. a real Supabase Auth, RLS, and Storage-policy security boundary; and
+4. automated tests for critical business workflows and GitHub Actions CI.
 
 ## Current State
 
-项目是一个 Vite + React 18 单页营运后台。受保护的 routes 覆盖 dashboard、bookings、check-in/out、cabins、users、settings 和 account；Supabase 提供 Auth、PostgreSQL 数据与 Storage；TanStack Query 管理 server state，React Hook Form 管理表单，styled-components 提供 UI styling，Recharts 用于 dashboard 图表。
+The project is a Vite + React 18 single-page operations dashboard. Protected routes cover the dashboard, bookings, check-in/out, cabins, users, settings, and account. Supabase provides Auth, PostgreSQL data, and Storage; TanStack Query manages server state; React Hook Form manages forms; styled-components provides UI styling; and Recharts provides dashboard charts.
 
-现有优点：
+Existing strengths:
 
-- `services/` 已将 Supabase calls 与 UI 大致分离，feature folders 的边界基本清楚；
-- TanStack Query 已有 query keys、mutation success/error feedback、cabins 与 bookings pagination prefetch；
-- route-level `ProtectedRoute`、global `ErrorBoundary`、loading spinner、toast 和 dark mode 已存在；
-- 生产 build 通过，Netlify 与 Vercel SPA rewrite configuration 已存在。
+- `services/` broadly separates Supabase calls from the UI, and feature-folder boundaries are generally clear;
+- TanStack Query already has query keys, mutation success/error feedback, and pagination prefetching for cabins and bookings;
+- route-level `ProtectedRoute`, a global `ErrorBoundary`, loading spinners, toasts, and dark mode already exist; and
+- the production build passes, and Netlify and Vercel SPA rewrite configuration already exists.
 
-审计基线（2026-09-02）：`npm run build` 通过；`npm run lint` 因一个 `react-refresh/only-export-components` warning 失败（`--max-warnings 0`）；没有 test script 或测试文件；build 产生一个 971.74 kB minified / 278.14 kB gzip 的 main chunk；`npm audit --omit=dev` 报告 8 个 production dependency vulnerabilities（4 moderate、4 high）。
+Audit baseline (2026-09-02): `npm run build` passes; `npm run lint` fails on one `react-refresh/only-export-components` warning because of `--max-warnings 0`; no test script or test files exist; the build produces a 971.74 kB minified / 278.14 kB gzip main chunk; and `npm audit --omit=dev` reports 8 production dependency vulnerabilities (4 moderate, 4 high).
 
 ## Portfolio Positioning
 
-The Wild Oasis 应证明你能把一个前端业务应用做得可靠、安全、可测试、可维护。它补足 WhereRU：
+The Wild Oasis should demonstrate that you can make a frontend business application reliable, secure, testable, and maintainable. It complements WhereRU:
 
-- **The Wild Oasis**：React/TypeScript、frontend architecture、Supabase database/auth/security、client data handling、quality automation；
-- **WhereRU**：Python/FastAPI、AWS deployment、AI/Bedrock/Transcribe、PostgreSQL/pgvector 与 backend/infrastructure；
-- **组合价值**：前者展示产品前端和 managed backend 的工程基本功，后者展示 AI 与 cloud/backend breadth；两者不重复堆叠。
+- **The Wild Oasis:** React/TypeScript, frontend architecture, Supabase database/auth/security, client-side data handling, and quality automation;
+- **WhereRU:** Python/FastAPI, AWS deployment, AI/Bedrock/Transcribe, PostgreSQL/pgvector, and backend/infrastructure; and
+- **Combined value:** the former demonstrates product-frontend and managed-backend engineering fundamentals, while the latter demonstrates AI and cloud/backend breadth; the two do not unnecessarily duplicate each other.
 
-不要在本仓库无明确业务理由地加入 Python/FastAPI、AWS、AI、microservices、Kubernetes、Kafka、Redis、GraphQL、Redux 或独立 backend。Supabase 已适合此应用；真正缺口是对现有 client 与 Supabase boundary 的工程化，而不是另造一套 stack。
+Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, GraphQL, Redux, or a standalone backend to this repository without a clear product reason. Supabase already suits this application; the real gap is engineering the existing client and Supabase boundary, not creating another stack.
 
 ## Gap Analysis
 
 | Area | Current State | Target State | Priority | Resume Value |
 | ---- | ------------- | ------------ | -------- | ------------ |
-| Security and configuration | Supabase URL/publishable key hard-coded；RLS、Storage policy、Auth settings 不在 repo，无法审计；login form 含预填 credentials | Env-based public config、无示例帐号、versioned Supabase SQL/policy evidence、least-privilege Auth/Storage rules | P0 | High |
-| Correctness and reliability | `updateSetting` likely requests a single row without `.select()`；cabin upload rollback can delete an edited cabin；query failures are rarely rendered | Tested mutation contracts、safe compensation/rollback、consistent error states | P0 | High |
-| Dependency and lint baseline | Lint fails；two ESLint configs coexist；8 production audit findings | One active lint config、passing checks、intentional compatible upgrades and recorded audit outcome | P0 | High |
+| Security and configuration | Supabase URL/publishable key are hard-coded; RLS, Storage policies, and Auth settings are not in the repository and cannot be audited; the login form has prefilled credentials | Environment-based public configuration, no example account, version-controlled Supabase SQL/policy evidence, least-privilege Auth/Storage rules | P0 | High |
+| Correctness and reliability | `updateSetting` likely requests a single row without `.select()`; cabin upload rollback can delete an edited cabin; query failures are rarely rendered | Tested mutation contracts, safe compensation/rollback, consistent error states | P0 | High |
+| Dependency and lint baseline | Lint fails; two ESLint configs coexist; 8 production audit findings | One active lint config, passing checks, intentional compatible upgrades, and a recorded audit outcome | P0 | High |
 | Automated testing | No test runner or test files | Vitest + React Testing Library behavioural regression suite for critical logic and workflows | P1 | High |
-| Delivery workflow | No `.github/workflows` | GitHub Actions initially runs `npm ci`, lint, tests and build; typecheck joins after TypeScript exists | P1 | High |
+| Delivery workflow | No `.github/workflows` | GitHub Actions initially runs `npm ci`, lint, tests, and build; typecheck joins after TypeScript exists | P1 | High |
 | Type safety | Entire application is JavaScript; domain/data contracts are implicit | Predominantly TypeScript application using verified Supabase-generated database contracts | P2 | High |
 | Recruiter presentation | README is Vite starter text; no architecture/security/testing explanation | Evidence-led, honest README that distinguishes the course baseline from independent engineering work | P3 | High |
 | UX, accessibility and responsiveness | Fixed desktop layout; custom modal lacks dialog semantics/focus management; forms have uneven validation | Targeted, measured improvements to important workflows | P4 | Medium |
@@ -53,7 +53,6 @@ The Wild Oasis 应证明你能把一个前端业务应用做得可靠、安全�
 ### Phase 0 — Security, baseline and correctness
 
 **Objective:** remove immediate portfolio/security risks and establish a trustworthy baseline before structural work.
-
 
 #### Phase 0.1 — Configuration and credential hygiene
 
@@ -119,7 +118,7 @@ The Wild Oasis 应证明你能把一个前端业务应用做得可靠、安全�
 
 ### Phase 3 — Recruiter-ready documentation and release
 
-**Objective:** make the engineering evidence honest, understandable and easy to evaluate in 30–60 seconds.
+**Objective:** make the engineering evidence honest, understandable, and easy to evaluate in 30–60 seconds.
 
 - [ ] Replace the Vite starter README with English project summary, screenshots/demo, architecture, data/security model, setup, commands, tests, CI, deployment and verified limitations.
 - [ ] Add an **Engineering evolution** section that states the project began from a course/tutorial baseline, distinguishes inherited functionality from independently implemented engineering improvements, and links claims to actual changes.
@@ -158,16 +157,16 @@ The Wild Oasis 应证明你能把一个前端业务应用做得可靠、安全�
 
 ## Resume Outcome
 
-完成后可真实描述为：
+Once complete, the project can be described truthfully as:
 
 - Built a React + TypeScript operations dashboard using TanStack Query and Supabase, with explicit server-state and mutation handling.
 - Designed and documented Supabase authentication, Row Level Security and Storage access controls for staff workflows.
 - Added focused automated tests and GitHub Actions quality gates for critical booking and cabin-management flows.
 - Improved frontend reliability and accessibility through validated forms, explicit async states and keyboard-accessible UI patterns.
 
-这些表述必须清楚区分 course/tutorial baseline 与本 roadmap 中独立完成的 engineering improvements。
+These statements must clearly distinguish the course/tutorial baseline from the engineering improvements independently completed in this roadmap.
 
-任何 performance、coverage、bundle-size 或 latency 数字必须在改动前后实际测量并保留证据后，才可写进 resume。
+Any performance, coverage, bundle-size, or latency figure may be added to a resume only after it has been measured before and after the change and retained with supporting evidence.
 
 ## Decisions & Gotchas
 

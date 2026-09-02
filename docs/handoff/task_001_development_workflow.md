@@ -13,6 +13,7 @@ Establish a persistent GitHub-based development workflow, add handoff structure,
 - Added `docs/handoff/task_p0_1_runtime_verification.md`.
 - Added `docs/handoff/task_p0_2_supabase_settings_fix.md`.
 - Added this workflow-setup handoff.
+- Standardized the tracked workflow documentation in `AGENTS.md` and `ROADMAP.md` in English for external developers, recruiters, collaborators, and future Codex/ChatGPT sessions, without changing roadmap decisions or statuses.
 - Captured previously completed Phase 0.1 files: `.gitignore`, `.env.example`, `src/services/supabase.js`, `src/main.jsx`, and `src/features/authentication/LoginForm.jsx`.
 - Captured previously completed Phase 0.2 files: `src/services/apiSettings.js` and `src/services/apiCabins.js`.
 - Removed local `.git/info/exclude` entries for `AGENTS.md` and `ROADMAP.md`; the local metadata file itself is not committed.
@@ -30,6 +31,7 @@ Establish a persistent GitHub-based development workflow, add handoff structure,
 - Inspected each captured Phase 0.1/0.2 file against `main`; `.env.example` contains placeholders only and local `.env.local`/browser runtime files were excluded from staging.
 - Ran `npm run build` successfully.
 - Ran `npm run lint`; it failed only on the existing `react-refresh/only-export-components` warning in `src/context/DarkModeContext.jsx` because the script enforces `--max-warnings 0`.
+- Confirmed the updated `AGENTS.md` and `ROADMAP.md` contain no Chinese characters and that the documentation-only diff passes `git diff --check`.
 
 ## Risks / Notes
 
