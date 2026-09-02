@@ -16,7 +16,7 @@ The current working-tree evidence, attributed to Phase 0.1 in `ROADMAP.md`, show
 - `src/main.jsx` renders an application configuration error instead of leaving a blank page when required configuration is absent.
 - `src/features/authentication/LoginForm.jsx` no longer contains prefilled demo email/password values.
 
-No dedicated Phase 0.1 commit exists. These files were found as uncommitted working-tree changes when this handoff was reconstructed.
+The original Phase 0.1 implementation had no dedicated commit. Its verified working-tree changes were later captured in version control through baseline Pull Request #1; this handoff records that retrospective history.
 
 ## Not Changed
 
@@ -39,7 +39,7 @@ The roadmap also records a successful production build and the pre-existing lint
 ## Risks / Notes
 
 - Authenticated verification was intentionally not performed because no authorised account credentials were used.
-- The evidence comes from the roadmap and current source/worktree, not a historical commit or retained runtime recording.
+- The evidence comes from the roadmap and the implementation later captured by baseline Pull Request #1, not a historical Phase 0.1 commit or retained runtime recording.
 - Supabase publishable configuration is public client configuration, not a service-role secret; service-role keys remain prohibited in browser code.
 
 ## Next

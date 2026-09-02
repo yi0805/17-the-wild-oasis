@@ -1,0 +1,185 @@
+# The Wild Oasis — Engineering Roadmap
+
+## Project Goal
+
+将 The Wild Oasis 发展为一个以营运人员为目标的 **React + TypeScript operations dashboard**：它应清晰展示可维护的 frontend architecture、可靠的 server-state/data mutations、经验证的 Supabase authorization，以及测试与 CI 的工程工作流。
+
+完成后的招聘者应能在短时间内看见以下四项信号：
+
+1. React + TypeScript 的组件、domain model 与 data-access 设计；
+2. TanStack Query、React Hook Form 和明确的 loading / error / empty state；
+3. Supabase Auth、RLS 与 Storage policy 的真实 security boundary；
+4. 面向关键业务流程的 automated tests 与 GitHub Actions CI。
+
+## Current State
+
+项目是一个 Vite + React 18 单页营运后台。受保护的 routes 覆盖 dashboard、bookings、check-in/out、cabins、users、settings 和 account；Supabase 提供 Auth、PostgreSQL 数据与 Storage；TanStack Query 管理 server state，React Hook Form 管理表单，styled-components 提供 UI styling，Recharts 用于 dashboard 图表。
+
+现有优点：
+
+- `services/` 已将 Supabase calls 与 UI 大致分离，feature folders 的边界基本清楚；
+- TanStack Query 已有 query keys、mutation success/error feedback、cabins 与 bookings pagination prefetch；
+- route-level `ProtectedRoute`、global `ErrorBoundary`、loading spinner、toast 和 dark mode 已存在；
+- 生产 build 通过，Netlify 与 Vercel SPA rewrite configuration 已存在。
+
+审计基线（2026-09-02）：`npm run build` 通过；`npm run lint` 因一个 `react-refresh/only-export-components` warning 失败（`--max-warnings 0`）；没有 test script 或测试文件；build 产生一个 971.74 kB minified / 278.14 kB gzip 的 main chunk；`npm audit --omit=dev` 报告 8 个 production dependency vulnerabilities（4 moderate、4 high）。
+
+## Portfolio Positioning
+
+The Wild Oasis 应证明你能把一个前端业务应用做得可靠、安全、可测试、可维护。它补足 WhereRU：
+
+- **The Wild Oasis**：React/TypeScript、frontend architecture、Supabase database/auth/security、client data handling、quality automation；
+- **WhereRU**：Python/FastAPI、AWS deployment、AI/Bedrock/Transcribe、PostgreSQL/pgvector 与 backend/infrastructure；
+- **组合价值**：前者展示产品前端和 managed backend 的工程基本功，后者展示 AI 与 cloud/backend breadth；两者不重复堆叠。
+
+不要在本仓库无明确业务理由地加入 Python/FastAPI、AWS、AI、microservices、Kubernetes、Kafka、Redis、GraphQL、Redux 或独立 backend。Supabase 已适合此应用；真正缺口是对现有 client 与 Supabase boundary 的工程化，而不是另造一套 stack。
+
+## Gap Analysis
+
+| Area | Current State | Target State | Priority | Resume Value |
+| ---- | ------------- | ------------ | -------- | ------------ |
+| Security and configuration | Supabase URL/publishable key hard-coded；RLS、Storage policy、Auth settings 不在 repo，无法审计；login form 含预填 credentials | Env-based public config、无示例帐号、versioned Supabase SQL/policy evidence、least-privilege Auth/Storage rules | P0 | High |
+| Correctness and reliability | `updateSetting` likely requests a single row without `.select()`；cabin upload rollback can delete an edited cabin；query failures are rarely rendered | Tested mutation contracts、safe compensation/rollback、consistent error states | P0 | High |
+| Dependency and lint baseline | Lint fails；two ESLint configs coexist；8 production audit findings | One active lint config、passing checks、intentional compatible upgrades and recorded audit outcome | P0 | High |
+| Automated testing | No test runner or test files | Vitest + React Testing Library behavioural regression suite for critical logic and workflows | P1 | High |
+| Delivery workflow | No `.github/workflows` | GitHub Actions initially runs `npm ci`, lint, tests and build; typecheck joins after TypeScript exists | P1 | High |
+| Type safety | Entire application is JavaScript; domain/data contracts are implicit | Predominantly TypeScript application using verified Supabase-generated database contracts | P2 | High |
+| Recruiter presentation | README is Vite starter text; no architecture/security/testing explanation | Evidence-led, honest README that distinguishes the course baseline from independent engineering work | P3 | High |
+| UX, accessibility and responsiveness | Fixed desktop layout; custom modal lacks dialog semantics/focus management; forms have uneven validation | Targeted, measured improvements to important workflows | P4 | Medium |
+| Performance | One large initial bundle; no route-level lazy loading or bundle budget | Measure first, then implement only justified optimisations | P4 | Medium |
+
+## Phases
+
+### Phase 0 — Security, baseline and correctness
+
+**Objective:** remove immediate portfolio/security risks and establish a trustworthy baseline before structural work.
+
+
+#### Phase 0.1 — Configuration and credential hygiene
+
+- [x] Remove hard-coded login demo credentials; do not commit credentials or test identities.
+- [x] Move `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to local environment configuration; add a safe `.env.example` and document that a publishable/anon key is public configuration, never a service-role secret.
+- [x] Ensure local `.env` files are ignored while `.env.example` remains trackable.
+- [x] Scan the repository for service-role keys and private credentials; record the result without treating the publishable key as a secret.
+- [x] Verify valid and missing configuration paths in a browser without using or restoring demo login credentials.
+
+**Manual verification:** create a local untracked `.env` from `.env.example` with the project's public client configuration; run the app and confirm the login inputs are blank and unauthenticated navigation reaches the login page. Temporarily remove one required variable and confirm the application renders the explicit configuration error. Do not commit the local `.env` or test credentials. Authenticated data loading remains a separate manual check requiring an authorised account.
+
+#### Phase 0.2 — Correctness and mutation safety
+
+- [x] Fix the settings update return contract by selecting the updated row before calling `.single()`.
+- [x] Change cabin image mutation ordering so storage upload failure leaves an existing cabin unchanged; clean up a newly uploaded image if the subsequent database write fails.
+- [x] Inspect and document the successful image-replacement lifecycle; prior owned-image cleanup is a separate, unresolved follow-up.
+- [ ] Perform the documented authenticated manual verification with a non-production test record; record the exact result. Automated regressions belong in Phase 2.
+
+**Manual verification:** with an authorised test account and non-production data, change one settings value, refresh the page and confirm the persisted value and success feedback. Then edit an existing cabin with a new image while blocking the `cabin-images` Storage upload request in browser DevTools; confirm the mutation reports failure, the cabin row still exists after refresh, and its prior image remains. Finally, create a new cabin while blocking the database write after a successful image upload; confirm no cabin row is created and the uploaded object is removed. Do not run these destructive checks against shared production data.
+
+**Image lifecycle decision:** the current successful edit path leaves the previous image in Storage. A future fix must receive or otherwise reliably identify the previous image, and treat it as deletable only when it is an application-owned object in `cabin-images`; external, seeded/default, or otherwise non-owned URLs must never be deleted. Safe ordering is new-image upload → database update → best-effort old-owned-object removal. If old-object removal fails, keep the successful database update and new image, log/record the orphan for retry, and do not delete the cabin or roll back to a potentially unavailable old image.
+
+#### Phase 0.3 — Development/dead-code cleanup
+
+- [ ] Remove or isolate the destructive development `src/data/Uploader.jsx` so it cannot become production functionality.
+
+#### Phase 0.4 — Lint and dependency baseline
+
+- [ ] Inspect each audit finding's direct/transitive dependency path, available compatible upgrades and practical risk before changing versions. Do not run `npm audit fix --force` or introduce a major version without an approved impact assessment.
+- [ ] Consolidate the ESLint configuration, fix the existing warning, and re-run lint/build/audit.
+
+#### Phase 0.5 — Supabase Auth / RLS / Storage security review
+
+- [ ] **User-assisted Dashboard review:** determine the actual access model from product requirements and current Supabase configuration. Do not invent staff/admin roles solely for portfolio value.
+- [ ] **User-assisted Dashboard review:** inspect the current Auth provider/sign-up settings, RLS status and policies for `bookings`, `cabins`, `guests` and `settings`, plus Storage policies for `avatars` and `cabin-images`. Verify anonymous access and every real authenticated access path discovered above; do not infer policies from the frontend.
+- [ ] **Repository work:** establish a verified current Supabase schema/policy baseline before adopting migrations. Do not fabricate historical migrations for the existing hosted database; record future changes through version-controlled migrations/configuration.
+
+**Definition of done:** lint and production build pass; no credentials or service-role secrets are tracked; authorization assumptions are documented and backed by real policies; the identified mutation fixes have reproducible manual-verification records. Automated regression tests for those fixes belong in Phase 2.
+
+### Phase 1 — Regression safety and CI
+
+**Objective:** protect existing behaviour before broad TypeScript migration.
+
+- [ ] Add Vitest and React Testing Library with one shared test setup; avoid coverage targets that reward trivial tests.
+- [ ] Add behavioural tests for important user flows and validation. Mock the data-access boundary only where necessary; do not mock TanStack Query, React Hook Form, or internal component details without a concrete reason.
+- [ ] Test service failure/rollback behaviour directly using controlled Supabase and Storage mocks, including the Phase 0 settings-update and cabin image-mutation cases.
+- [ ] Add GitHub Actions that uses `npm ci` and runs the commands available at this stage: lint, unit/integration tests and production build. Add `npm run typecheck` only in Phase 2 after the script exists.
+
+**Definition of done:** selected high-risk behaviour has stable regression tests; CI reports `npm ci`, lint, tests and build for every pull request; tests do not mutate shared Supabase data.
+
+### Phase 2 — Incremental TypeScript migration
+
+**Objective:** reach a predominantly TypeScript application while keeping the tested application working throughout migration.
+
+- [ ] Add TypeScript tooling and a non-disruptive `tsconfig`; do not force unrelated hotfixes to convert whole files before this phase.
+- [ ] After a verified Supabase baseline exists, generate the Supabase `Database` types from the actual project schema and type the Supabase client with them. Treat generated table `Row`, `Insert` and `Update` contracts as the source of truth; do not hand-copy the full database schema into interfaces.
+- [ ] Derive domain/UI types from generated database types where suitable, adding handwritten types only for non-database concepts or meaningful transformations.
+- [ ] Convert services, data hooks and high-value feature boundaries first, then progressively convert the remaining application so JavaScript is temporary migration residue rather than the intended permanent state.
+- [ ] Add and pass `npm run typecheck`; extend CI to run it only once it exists.
+- [ ] Add runtime validation only at genuinely untrusted boundaries, such as user files, URL input or third-party payloads. A validation dependency such as Zod requires a concrete runtime gap that generated types and controlled schema cannot cover.
+
+**Definition of done:** the application is predominantly TypeScript, its Supabase client uses generated database contracts, and lint, typecheck, tests and build pass. A few deliberately scheduled JavaScript files may remain only with a documented migration reason.
+
+### Phase 3 — Recruiter-ready documentation and release
+
+**Objective:** make the engineering evidence honest, understandable and easy to evaluate in 30–60 seconds.
+
+- [ ] Replace the Vite starter README with English project summary, screenshots/demo, architecture, data/security model, setup, commands, tests, CI, deployment and verified limitations.
+- [ ] Add an **Engineering evolution** section that states the project began from a course/tutorial baseline, distinguishes inherited functionality from independently implemented engineering improvements, and links claims to actual changes.
+- [ ] Explain verified design decisions and trade-offs truthfully, including Supabase security, test scope and TypeScript migration. Do not claim tutorial functionality as wholly original work.
+- [ ] Identify the real deployment target; retain only its required configuration and remove stale Netlify or Vercel configuration only after confirming it is unused.
+- [ ] Conduct final secret, deployment-config and documentation review.
+
+**Definition of done:** a reviewer can understand the app, its provenance, its independently implemented improvements and its real deployment path without reading the whole codebase.
+
+### Phase 4 — Targeted frontend hardening
+
+**Objective:** improve high-value user experience, resilience and performance based on evidence rather than broad redesign.
+
+- [ ] Standardise important query loading, error and empty states.
+- [ ] Improve modal keyboard semantics/focus handling and the most important responsive workflows.
+- [ ] Validate file size/type for UX and enforce the matching server-side policy once the actual Storage model is known.
+- [ ] Implement the documented owned-cabin-image lifecycle only after ownership can be identified safely; retain cleanup failures for retry rather than deleting successful data.
+- [ ] Measure bundle composition and implement only justified route splitting or dependency optimisation.
+
+**Definition of done:** selected critical workflows have verified accessibility/resilience improvements and every performance claim has a measurement.
+
+## Optional stretch goals
+
+- [ ] Add a small Playwright smoke suite only if a stable, isolated Supabase test environment and repeatable seed process can be created without disproportionate complexity. It is not required for project completion.
+- [ ] Pursue further performance or end-to-end coverage only when supported by measured risk/value.
+
+## Final Verification
+
+- [ ] `npm ci` succeeds from `package-lock.json`.
+- [ ] `npm run lint`, tests, `npm run typecheck` and `npm run build` pass; typecheck is required only after Phase 2 adds it.
+- [ ] GitHub Actions runs the corresponding checks on pull requests.
+- [ ] No tracked `.env` secrets, service-role keys or demo credentials; only safe example configuration is committed.
+- [ ] Supabase RLS and Storage policies have been verified for anonymous access and every actual authenticated access path; no roles are invented for portfolio presentation.
+- [ ] Login, protected routes, cabin creation/editing, booking deletion, check-in/out and settings updates are tested or explicitly manually verified.
+- [ ] README accurately distinguishes course-baseline functionality from independently implemented engineering work, and matches the actual implementation, scripts and chosen deployment configuration.
+
+## Resume Outcome
+
+完成后可真实描述为：
+
+- Built a React + TypeScript operations dashboard using TanStack Query and Supabase, with explicit server-state and mutation handling.
+- Designed and documented Supabase authentication, Row Level Security and Storage access controls for staff workflows.
+- Added focused automated tests and GitHub Actions quality gates for critical booking and cabin-management flows.
+- Improved frontend reliability and accessibility through validated forms, explicit async states and keyboard-accessible UI patterns.
+
+这些表述必须清楚区分 course/tutorial baseline 与本 roadmap 中独立完成的 engineering improvements。
+
+任何 performance、coverage、bundle-size 或 latency 数字必须在改动前后实际测量并保留证据后，才可写进 resume。
+
+## Decisions & Gotchas
+
+- 2026-09-02 audit: build passes, lint fails on one Fast Refresh warning, and no automated test command exists yet.
+- 2026-09-02 Phase 0.1: moved public Supabase client configuration to Vite environment variables, added a placeholder-only `.env.example`, ignored local `.env` files and removed prefilled login credentials. `git check-ignore` confirmed `.env` and `.env.local` are ignored while `.env.example` remains trackable; the repository scan found no service-role key, private key or tracked local environment file. Browser verification with an ignored `.env.local` confirmed that unauthenticated `/` navigation reaches the login page with blank fields. Removing the publishable key displayed the explicit application configuration error; the valid local configuration was restored afterwards. Authenticated data access was not tested because no account credentials were used. `npm run lint` still fails on the pre-existing Fast Refresh warning; this is deferred to Phase 0.4.
+- 2026-09-02 Phase 0.2: `updateSetting` now selects the updated row before `.single()`. Cabin image uploads now occur before the database write; a failed edit upload leaves the existing row untouched, and a successful new upload is removed if its create/edit database write fails. `npm run build` passed; lint still has the existing Fast Refresh warning. Authenticated destructive manual verification is pending a non-production test record; automated regression coverage remains scheduled for Phase 2.
+- 2026-09-02 roadmap revision: behavioural regression tests and CI now precede TypeScript migration. CI starts with `npm ci`, lint, tests and build; `typecheck` joins only after Phase 2. Playwright is an optional stretch goal, not a completion requirement.
+- 2026-09-02 cabin image lifecycle review: on a successful edit with a new image, the previous image is currently left in Storage. `createEditCabin` receives only the new image and cabin ID, so it cannot safely delete the old URL. Future cleanup must distinguish positively identified application-owned `cabin-images` objects from external/default/non-owned URLs. If old-object removal fails after a successful row update, preserve the new row/image and record the orphan for retry; never delete the cabin as compensation.
+- Supabase roles, RLS and Auth configuration remain unverified. The roadmap deliberately refers to actual access paths to be discovered, rather than assumed staff/admin roles.
+- If migration management is adopted, first capture and verify the existing hosted schema/policy baseline. Do not manufacture historical migrations; version-control only verified baseline artefacts and future changes.
+- The checked-in Supabase `sb_publishable_...` key is a browser publishable key, not evidence of a service-role-key leak. It still belongs in environment configuration for safer per-environment operation. A `service_role` key must never enter the client bundle.
+- `ProtectedRoute` only controls the React UI. It is not a database authorization boundary; RLS and Storage policies must be inspected in Supabase before making security claims.
+- No Supabase migrations, policy definitions or Auth dashboard configuration are present in the repository, so current RLS/Auth/Storage security cannot be verified from source alone.
+- `src/data/Uploader.jsx` contains broad delete-and-seed operations. It is currently not imported by the application, but it must not be treated as production code.
+- The project is small enough for incremental TypeScript migration to deliver real value. Convert boundaries first; do not pause feature work for a whole-repository rewrite.

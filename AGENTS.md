@@ -167,4 +167,4 @@ Human 将 Pull Request 交给 ChatGPT 独立 review，再由 Human 作最终 mer
 9. **不虚构结果或性能数据**：resume metric 必须来自实际 measurement，并保留可复查证据。
 10. **更新文档**：完成 milestone 后勾选 ROADMAP、必要时更新 `Decisions & Gotchas`，architecture rule 变化时同步更新本文件。Recruiter-ready phase 必须确认真实 deployment target 后才删除另一个平台的 stale configuration。
 11. **不确定时先分析**：多个合理方案存在时，先说明 trade-off 再选择。
-12. **保持 scope**：目前只允许修改 `E:\reactPractise\17-the-wild-oasis`；在用户明确说明第一个项目完成前，不得修改 `21-the-wild-oasis-website`。
+12. **保持 scope**：只修改此 repository，除非 human 明确扩大 scope；在明确授权前，不得修改 sibling `21-the-wild-oasis-website` repository。

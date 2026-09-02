@@ -11,7 +11,7 @@ Correct the Supabase settings update response contract and address the identifie
 - `src/services/apiSettings.js` now calls `.select().single()` after updating the single settings row. Supabase updates return a minimal response unless a representation is requested; `.select()` makes the updated row available for `.single()` and for the caller.
 - `src/services/apiCabins.js` uploads a replacement image before writing the cabin row. If upload fails, an existing cabin row is untouched. If the later database write fails, the newly uploaded object is removed as best-effort cleanup.
 
-No dedicated Phase 0.2 commit exists. These changes were found as uncommitted working-tree changes against commit `709c06c` when this handoff was reconstructed.
+The original Phase 0.2 implementation had no dedicated commit. Its verified working-tree changes against commit `709c06c` were later captured in version control through baseline Pull Request #1; this handoff records that retrospective history.
 
 ## Not Changed
 
@@ -30,7 +30,7 @@ No dedicated Phase 0.2 commit exists. These changes were found as uncommitted wo
 
 - The settings response behaviour and cabin rollback paths were not exercised against a live authorised Supabase session during this phase.
 - If deleting an old owned cabin image after a successful replacement later fails, the successful cabin row/new image must remain; the orphan should be recorded for retry rather than compensated by deleting the cabin.
-- This handoff relies on the current diff and roadmap decisions because Git history contains no standalone Phase 0.2 commit.
+- This handoff relies on the roadmap and the implementation later captured by baseline Pull Request #1 because Git history contains no standalone Phase 0.2 commit.
 
 ## Next
 
