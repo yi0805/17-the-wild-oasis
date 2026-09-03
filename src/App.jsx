@@ -17,7 +17,7 @@ import AppLayout from "./ui/AppLayout";
 import Booking from "./pages/Booking";
 import Checkin from "./pages/Checkin";
 import ProtectedRoute from "./ui/ProtectedRoute";
-import { DarkModeProvider } from "./context/DarkModeContext";
+import { DarkModeProvider } from "./context/DarkModeProvider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
