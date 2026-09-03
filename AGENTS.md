@@ -181,7 +181,9 @@ Review at least:
 
 For Supabase-related changes, explicitly review Auth boundaries, RLS, Storage policies, public browser configuration versus secrets, destructive mutations, and database/Storage consistency. For file replacement or upload flows, prefer creating/uploading the new resource before replacing the existing reference; clean up a safely removable new resource if the primary database write fails; delete an old resource only after a successful replacement and only when it is positively identified as application-owned; and never undo a successful database write and new-resource replacement solely because old-resource cleanup fails.
 
-Classify findings as **Blocking** (must be fixed before merge) or **Non-blocking** (useful follow-up that does not prevent merge). A substantive review must end with `APPROVE` or `REQUEST CHANGES`, Blocking findings, Non-blocking findings, a verification assessment, handoff accuracy, and `Safe to merge: YES` or `Safe to merge: NO`. The human retains final merge authority.
+Native Codex GitHub review is an advisory automated safety net. It must use its platform-defined review/finding format and severity schema, and is not required to emit `APPROVE`/`REQUEST CHANGES`, Blocking/Non-blocking sections, a verification/handoff footer, or `Safe to merge: YES`/`NO`. The absence of native Codex findings does not replace the human final merge decision.
+
+For ChatGPT or other human-directed substantive reviews, classify findings as **Blocking** (must be fixed before merge) or **Non-blocking** (useful follow-up that does not prevent merge). End the review with `APPROVE` or `REQUEST CHANGES`, Blocking findings, Non-blocking findings, a verification assessment, handoff accuracy, and `Safe to merge: YES` or `Safe to merge: NO`. The human retains final merge authority.
 
 ## Codex Working Rules
 
