@@ -158,10 +158,19 @@ After implementation and verification:
 
 Native Codex automatic code review is configured outside this repository through Codex GitHub code-review settings. For this repository, review is triggered when a Pull Request opens; the repository code does not enable the feature.
 
-- Opening a task Pull Request triggers the first native Codex review. Findings are posted to GitHub for the human to review.
+- Opening a task Pull Request triggers the first native Codex review. Findings are posted to GitHub for the human to review; the human must allow the configured review to complete and assess its findings before the final merge decision.
 - Do not add or restore a custom GitHub Actions Codex review workflow, `OPENAI_API_KEY`, API-billed `openai/codex-action`, or a `chatgpt-review` label. The earlier experimental GitHub Actions/API review Pull Request was closed without merge, and its branch was deleted.
 - Do not assume that pushing further commits automatically requests another review. After a blocking finding is addressed, the human may manually request another native Codex review from the Pull Request.
 - The human retains final merge authority. Codex must never automatically merge a Pull Request.
+
+### Repository-Enforced Branch Rules
+
+GitHub's externally configured `Protect main` ruleset is Active and targets the default branch, currently `main`. This documentation records the observed configuration; it does not create or enforce the ruleset.
+
+- The ruleset has no bypasses and enforces Pull Request delivery, resolved review conversations before merge, Squash-only merges, deletion protection, and force-push protection.
+- Required approvals are currently 0 because this is a solo-maintained repository.
+- Status checks, signed commits, deployments, Code Owner/team/latest-push approvals, code scanning/quality/coverage requirements, and automatic Copilot review are not currently required. Status checks must be reconsidered only after Phase 1 CI exists and has stable check names.
+- The GitHub ruleset and native Codex automatic review are separate external systems. The ruleset does not itself ensure native review completion when no review conversation exists; follow the native-review workflow above before the human makes the final merge decision.
 
 ## Code Review Rules
 
