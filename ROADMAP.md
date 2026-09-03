@@ -79,7 +79,7 @@ Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, Gra
 
 #### Phase 0.3 — Development/dead-code cleanup
 
-- [ ] Remove or isolate the destructive development `src/data/Uploader.jsx` so it cannot become production functionality.
+- [x] Remove or isolate the destructive development `src/data/Uploader.jsx` so it cannot become production functionality.
 
 #### Phase 0.4 — Lint and dependency baseline
 
@@ -178,10 +178,10 @@ Any performance, coverage, bundle-size, or latency figure may be added to a resu
 - 2026-09-03 Phase 0.2 manual verification: human-performed authenticated verification against an authorised account and non-production data passed. Settings persistence/restoration worked; a blocked edit upload left the existing cabin and baseline image unchanged; and a blocked create database write removed the uploaded image with no `test 1` cabin row remaining.
 - 2026-09-02 roadmap revision: behavioural regression tests and CI now precede TypeScript migration. CI starts with `npm ci`, lint, tests and build; `typecheck` joins only after Phase 2. Playwright is an optional stretch goal, not a completion requirement.
 - 2026-09-02 cabin image lifecycle review: on a successful edit with a new image, the previous image is currently left in Storage. `createEditCabin` receives only the new image and cabin ID, so it cannot safely delete the old URL. Future cleanup must distinguish positively identified application-owned `cabin-images` objects from external/default/non-owned URLs. If old-object removal fails after a successful row update, preserve the new row/image and record the orphan for retry; never delete the cabin as compensation.
+- 2026-09-03 Phase 0.3: `Uploader.jsx` was confirmed unused by the application and contained broad destructive delete-and-seed operations, so it was removed rather than retained as production functionality. `data-bookings.js`, `data-cabins.js`, and `data-guests.js` remain intentionally as non-executable development/test fixtures. No replacement seeding mechanism was introduced.
 - Supabase roles, RLS and Auth configuration remain unverified. The roadmap deliberately refers to actual access paths to be discovered, rather than assumed staff/admin roles.
 - If migration management is adopted, first capture and verify the existing hosted schema/policy baseline. Do not manufacture historical migrations; version-control only verified baseline artefacts and future changes.
 - The checked-in Supabase `sb_publishable_...` key is a browser publishable key, not evidence of a service-role-key leak. It still belongs in environment configuration for safer per-environment operation. A `service_role` key must never enter the client bundle.
 - `ProtectedRoute` only controls the React UI. It is not a database authorization boundary; RLS and Storage policies must be inspected in Supabase before making security claims.
 - No Supabase migrations, policy definitions or Auth dashboard configuration are present in the repository, so current RLS/Auth/Storage security cannot be verified from source alone.
-- `src/data/Uploader.jsx` contains broad delete-and-seed operations. It is currently not imported by the application, but it must not be treated as production code.
 - The project is small enough for incremental TypeScript migration to deliver real value. Convert boundaries first; do not pause feature work for a whole-repository rewrite.
