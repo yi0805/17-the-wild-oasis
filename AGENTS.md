@@ -163,6 +163,26 @@ Native Codex automatic code review is configured outside this repository through
 - Do not assume that pushing further commits automatically requests another review. After a blocking finding is addressed, the human may manually request another native Codex review from the Pull Request.
 - The human retains final merge authority. Codex must never automatically merge a Pull Request.
 
+## Code Review Rules
+
+When reviewing a Pull Request, use the actual GitHub diff and repository state as the primary source of truth. Treat the task handoff and implementation summary as supporting context: verify that the handoff matches the real diff, verification results, known risks, and unresolved work. Do not approve based only on an implementation completion report.
+
+Focus on material correctness, security, data integrity, mutation/partial-failure safety, architecture, deployment/runtime safety, approved scope, ROADMAP phase boundaries, and verification accuracy. Do not block for unrelated refactoring, formatting preferences, style-only suggestions, or speculative improvements outside the approved scope.
+
+Review at least:
+
+1. **Scope:** changes match the approved task, contain no unrelated work, and respect ROADMAP ordering and phase boundaries.
+2. **Correctness:** behaviour, error handling, edge cases, and likely regressions are reasonable.
+3. **Security:** no credentials, secrets, service-role keys, or unsafe sensitive configuration are introduced, and authentication/authorization boundaries are not weakened.
+4. **Data and mutation safety:** database, Storage, and asynchronous mutations handle partial failure safely. A successful primary write must not normally be rolled back solely because cleanup of an old resource fails.
+5. **Architecture:** existing project boundaries are respected unless an architecture change was explicitly approved.
+6. **Verification:** claimed tests, lint, build, typecheck, and runtime checks were actually run; unverified work is stated clearly; and pre-existing failures are not misrepresented as introduced or resolved.
+7. **Handoff accuracy:** the handoff matches the actual diff, verification, known risks, and remaining work.
+
+For Supabase-related changes, explicitly review Auth boundaries, RLS, Storage policies, public browser configuration versus secrets, destructive mutations, and database/Storage consistency. For file replacement or upload flows, prefer creating/uploading the new resource before replacing the existing reference; clean up a safely removable new resource if the primary database write fails; delete an old resource only after a successful replacement and only when it is positively identified as application-owned; and never undo a successful database write and new-resource replacement solely because old-resource cleanup fails.
+
+Classify findings as **Blocking** (must be fixed before merge) or **Non-blocking** (useful follow-up that does not prevent merge). A substantive review must end with `APPROVE` or `REQUEST CHANGES`, Blocking findings, Non-blocking findings, a verification assessment, handoff accuracy, and `Safe to merge: YES` or `Safe to merge: NO`. The human retains final merge authority.
+
 ## Codex Working Rules
 
 1. **Plan major changes first:** before any multi-file refactor, architecture change, dependency addition, TypeScript migration, database change, authentication change, or major feature, provide a short implementation plan.
