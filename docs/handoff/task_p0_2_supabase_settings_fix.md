@@ -24,14 +24,14 @@ The original Phase 0.2 implementation had no dedicated commit. Its verified work
 - `ROADMAP.md` records that `npm run build` passed after the changes.
 - `npm run lint` remained blocked by the existing `DarkModeContext.jsx` Fast Refresh warning; this was deferred to Phase 0.4.
 - No automated tests existed or were added.
-- Authenticated destructive manual verification was intentionally deferred until non-production test data and an authorised account are available. The roadmap contains the exact manual scenarios.
+- Human-performed authenticated manual verification passed with an authorised account and non-production data. The Breakfast price persisted after refresh and was restored successfully. Blocking a `cabin-images` upload during an existing-cabin edit displayed `Cabin image could not be uploaded`; after refresh, the cabin and its baseline image remained and the attempted changes were absent. Allowing a new-image upload (HTTP 200) while blocking the subsequent `cabins` INSERT displayed `Cabin could not be saved`; the `cabin-images` cleanup request returned HTTP 200, and the attempted `test 1` cabin was absent after refresh.
 
 ## Risks / Notes
 
-- The settings response behaviour and cabin rollback paths were not exercised against a live authorised Supabase session during this phase.
+- The human, not Codex, performed the authenticated browser verification using DevTools Request Conditions against non-production test data.
 - If deleting an old owned cabin image after a successful replacement later fails, the successful cabin row/new image must remain; the orphan should be recorded for retry rather than compensated by deleting the cabin.
 - This handoff relies on the roadmap and the implementation later captured by baseline Pull Request #1 because Git history contains no standalone Phase 0.2 commit.
 
 ## Next
 
-Complete the pending authorised, non-production manual verification when safe, then follow the approved roadmap. Phase 0.3 is development/dead-code cleanup and must not begin without approval.
+Phase 0.2 authenticated manual verification is complete. Follow the approved roadmap; Phase 0.3 is development/dead-code cleanup and must not begin without approval.
