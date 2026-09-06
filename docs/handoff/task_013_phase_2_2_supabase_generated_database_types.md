@@ -32,7 +32,7 @@ Base main SHA: `96933b500911c7bbd36abf62a72f68fe7962bd47`
 - The generated hosted schema contains the four verified operational tables and both baseline booking foreign-key relationships. It did not materially contradict the Phase 0.5 baseline.
 - `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check` passed. Tests remain 4 files / 19 tests.
 - `npm audit --omit=dev` reports the already documented two moderate React Router v6 advisories. Its only remediation is the out-of-scope breaking `react-router-dom@7.18.3` upgrade; no audit fix was applied.
-- Final GitHub Actions run ID/URL and final PR-head SHA are recorded after the pull-request workflow completes. It must pass Checkout, Set up Node.js, Install dependencies, Lint, Typecheck, Test (4 files / 19 tests), and Build.
+- GitHub Actions implementation validation: [run 34024145803](https://github.com/yi0805/17-the-wild-oasis/actions/runs/34024145803) passed on `7591eb63a06226c3980cad632f5ea2e8326c9a8d`. Checkout, Set up Node.js, Install dependencies, Lint, Typecheck, Test (4 files / 19 tests), and Build all passed. The documentation-only follow-up commit is verified by the final replacement PR-head workflow in the completion report.
 
 ## Risks / Notes
 
