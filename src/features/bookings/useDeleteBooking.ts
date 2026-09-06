@@ -3,10 +3,16 @@ import toast from "react-hot-toast";
 
 import { deleteBooking as deleteBookingApi } from "../../services/apiBookings";
 
+type BookingId = Parameters<typeof deleteBookingApi>[0];
+
 export function useDeleteBooking() {
   const queryClient = useQueryClient();
 
-  const { isLoading: isDeleting, mutate: deleteBooking } = useMutation({
+  const { isLoading: isDeleting, mutate: deleteBooking } = useMutation<
+    Awaited<ReturnType<typeof deleteBookingApi>>,
+    Error,
+    BookingId
+  >({
     mutationFn: deleteBookingApi,
     onSuccess: () => {
       toast.success("Booking successfully deleted");

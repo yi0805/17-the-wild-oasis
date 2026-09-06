@@ -4,6 +4,23 @@ import { useSearchParams } from "react-router-dom";
 import { PAGE_SIZE } from "../../utils/constatns";
 import { getBookings } from "../../services/apiBookings";
 
+type BookingListOptions = Parameters<typeof getBookings>[0];
+type BookingFilter = NonNullable<BookingListOptions["filter"]>;
+type BookingSort = NonNullable<BookingListOptions["sortBy"]>;
+
+function parseBookingSort(value: string): BookingSort {
+  const [field, direction] = value.split("-");
+
+  if (
+    (field === "startDate" || field === "totalPrice") &&
+    (direction === "asc" || direction === "desc")
+  ) {
+    return { field, direction };
+  }
+
+  return { field: "startDate", direction: "desc" };
+}
+
 export function useBookings() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
@@ -12,11 +29,10 @@ export function useBookings() {
   const filter =
     !filterValue || filterValue === "all"
       ? null
-      : { field: "status", value: filterValue };
+      : ({ field: "status", value: filterValue } satisfies BookingFilter);
 
   const sortByRaw = searchParams.get("sortBy") || "startDate-desc";
-  const [field, direction] = sortByRaw.split("-");
-  const sortBy = { field, direction };
+  const sortBy = parseBookingSort(sortByRaw);
 
   const page = !searchParams.get("page") ? 1 : Number(searchParams.get("page"));
 
@@ -29,7 +45,7 @@ export function useBookings() {
     queryFn: () => getBookings({ filter, sortBy, page }),
   });
 
-  const pageCount = Math.ceil(count / PAGE_SIZE);
+  const pageCount = Math.ceil((count ?? 0) / PAGE_SIZE);
 
   if (page < pageCount)
     queryClient.prefetchQuery({
