@@ -140,6 +140,25 @@ describe("CreateCabinForm", () => {
     expect(onCloseModal).not.toHaveBeenCalled();
   });
 
+  it("blocks an edit with a nullable database image", async () => {
+    const user = userEvent.setup();
+    const cabinToEdit = {
+      created_at: "2026-09-06T00:00:00.000Z",
+      id: 7,
+      name: "Pine Cabin",
+      maxCapacity: 4,
+      regularPrice: 200,
+      discount: 20,
+      description: "Quiet cabin among the trees.",
+      image: null,
+    };
+    renderCreateCabinForm({ cabinToEdit });
+
+    await user.click(screen.getByRole("button", { name: "Edit cabin" }));
+
+    expect(createEditCabin).not.toHaveBeenCalled();
+  });
+
   it("creates a valid cabin through the real mutation hook and closes on success", async () => {
     const user = userEvent.setup();
     const onCloseModal = vi.fn();
@@ -155,9 +174,9 @@ describe("CreateCabinForm", () => {
     await waitFor(() =>
       expect(createEditCabin).toHaveBeenCalledWith({
         name: "Forest Cabin",
-        maxCapacity: "4",
-        regularPrice: "200",
-        discount: "20",
+        maxCapacity: 4,
+        regularPrice: 200,
+        discount: 20,
         description: "Quiet cabin among the trees.",
         image,
       }),
