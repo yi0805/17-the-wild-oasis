@@ -59,7 +59,7 @@ Complete the approved Phase 0.5 security boundary with verified hosted applicati
 ## Risks / Notes
 
 - The application still uses public object URLs. Bucket visibility and MIME/size hardening are explicitly deferred.
-- The migration does not alter sequences, table data, schema, Auth schema, bucket records, or unrelated Storage buckets. Authenticated cabin INSERT and the SELECT-plus-DELETE Storage cleanup path were manually verified after application.
+- The migration does not alter sequences, table data, schema, Auth schema, bucket records, or unrelated Storage buckets. Authenticated cabin-image upload and removal were manually verified after application, preserving the SELECT-plus-DELETE Storage cleanup path.
 - The canonical deployment/Auth redirect URL remains unresolved. Successful old cabin-image replacement cleanup and old-avatar cleanup remain future work.
 - If CLI-managed migration deployment is adopted, reconcile hosted migration history before relying on `supabase db push`.
 
