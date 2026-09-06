@@ -59,7 +59,7 @@ Both `anon` and `authenticated` currently have broad table-level grants, includi
 | `avatars` | `true` | `NULL` | `NULL` |
 | `cabin-images` | `true` | `NULL` | `NULL` |
 
-Authenticated PERMISSIVE bucket-scoped Storage policies exist for SELECT, INSERT, UPDATE, and DELETE on both buckets. Their verified baseline predicate shape is the pure bucket condition: SELECT/DELETE use `USING (bucket_id = '<bucket>'::text)`, INSERT uses `WITH CHECK (bucket_id = '<bucket>'::text)`, and UPDATE uses both expressions. This exact baseline shape is important because the forward migration must not remove ownership-scoped or otherwise restrictive policies.
+Authenticated PERMISSIVE bucket-scoped Storage policies exist for SELECT, INSERT, UPDATE, and DELETE on both buckets. Their verified baseline predicate shape is the pure bucket condition: SELECT/DELETE use `USING (bucket_id = '<bucket>'::text)` with `WITH CHECK = NULL`; INSERT uses `USING = NULL` with `WITH CHECK (bucket_id = '<bucket>'::text)`; and UPDATE uses `USING (bucket_id = '<bucket>'::text)` with `WITH CHECK = NULL`. This exact baseline shape is important because the forward migration must not remove ownership-scoped or otherwise restrictive policies.
 
 The following global Storage policy was also observed and is intended for removal by the proposed migration:
 

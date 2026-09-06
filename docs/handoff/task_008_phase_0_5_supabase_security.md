@@ -25,6 +25,7 @@ Prepare the approved Phase 0.5 security boundary for review without applying hos
 
 - Added authenticated, bucket-scoped `cabin-images` SELECT to preserve the verified SELECT-plus-DELETE failed-write cleanup path; UPDATE remains absent.
 - Narrowed destructive table and Storage policy matching to exact verified PERMISSIVE baseline policy shape, role, command, and predicates.
+- Corrected the verified Storage UPDATE baseline matcher to `USING (bucket_id = '<bucket>'::text)` with `WITH CHECK = NULL`, so the unused hosted UPDATE policies are removed.
 - Replaced stale present-tense ROADMAP baseline statements with historical wording and removed the local filesystem link from the baseline document.
 
 ## Not Changed
@@ -46,6 +47,7 @@ Prepare the approved Phase 0.5 security boundary for review without applying hos
 - Repository searches confirmed login, logout, current-user retrieval, password update, and profile/avatar update references remain; no service-role key, `auth.admin`, or privileged backend mechanism was introduced.
 - Manually reviewed the complete source, baseline-document, migration, and handoff diff. The migration was not executed.
 - Correction pass: `npm ci`, `npm run lint`, `npm run build`, and `git diff --check` passed. The tracked-file search found no local filesystem path, browser signup call, or removed account-creation route reference; the revised migration was manually reviewed and not executed.
+- Final Storage correction: `git diff --check`, `npm run lint`, and `npm run build` passed. The complete Storage section was manually re-read: the two verified UPDATE baseline entries now require pure bucket `USING` with `WITH CHECK = NULL`, restrictive policies cannot match, and the final migration creates no Storage UPDATE policy.
 
 ## Risks / Notes
 

@@ -145,11 +145,11 @@ BEGIN
       VALUES
         ('r'::"char", '(bucket_id = ''avatars''::text)', NULL::text),
         ('a'::"char", NULL::text, '(bucket_id = ''avatars''::text)'),
-        ('w'::"char", '(bucket_id = ''avatars''::text)', '(bucket_id = ''avatars''::text)'),
+        ('w'::"char", '(bucket_id = ''avatars''::text)', NULL::text),
         ('d'::"char", '(bucket_id = ''avatars''::text)', NULL::text),
         ('r'::"char", '(bucket_id = ''cabin-images''::text)', NULL::text),
         ('a'::"char", NULL::text, '(bucket_id = ''cabin-images''::text)'),
-        ('w'::"char", '(bucket_id = ''cabin-images''::text)', '(bucket_id = ''cabin-images''::text)'),
+        ('w'::"char", '(bucket_id = ''cabin-images''::text)', NULL::text),
         ('d'::"char", '(bucket_id = ''cabin-images''::text)', NULL::text)
     ) AS baseline(expected_command, expected_qual, expected_with_check)
     WHERE namespace_name.nspname = 'storage'
