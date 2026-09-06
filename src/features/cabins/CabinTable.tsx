@@ -6,16 +6,12 @@ import { useCabins } from "./useCabins";
 import Table from "../../ui/Table";
 import Menus from "../../ui/Menus";
 import Empty from "../../ui/Empty";
-
-function compare(a, b, modifier) {
-  if (a["name"] < b["name"]) {
-    return -1 * modifier;
-  }
-  if (a["name"] > b["name"]) {
-    return 1 * modifier;
-  }
-  return 0;
-}
+import {
+  parseCabinFilter,
+  parseCabinSort,
+  sortCabins,
+  type Cabin,
+} from "./cabinTableOptions";
 
 function CabinTable() {
   const { isLoading, cabins } = useCabins();
@@ -27,24 +23,21 @@ function CabinTable() {
 
   if (isLoading) return <Spinner />;
 
-  const filterValue = searchParams.get("discount") || "all";
+  const filterValue = parseCabinFilter(searchParams.get("discount"));
 
-  let filteredCabins;
+  let filteredCabins: Cabin[];
   if (filterValue === "all") {
     filteredCabins = cabins;
   } else if (filterValue === "with-discount") {
-    filteredCabins = cabins.filter((cabin) => cabin.discount > 0);
-  } else if (filterValue === "no-discount") {
+    filteredCabins = cabins.filter(
+      (cabin) => cabin.discount !== null && cabin.discount > 0,
+    );
+  } else {
     filteredCabins = cabins.filter((cabin) => cabin.discount === 0);
   }
 
-  const sortBy = searchParams.get("sortBy") || "name-asc";
-  const [field, direction] = sortBy.split("-");
-  const modifier = direction === "asc" ? 1 : -1;
-  const sortedCabins =
-    field === "name"
-      ? filteredCabins.sort((a, b) => compare(a, b, modifier))
-      : filteredCabins.sort((a, b) => (a[field] - b[field]) * modifier);
+  const sortBy = parseCabinSort(searchParams.get("sortBy"));
+  const sortedCabins = sortCabins(filteredCabins, sortBy);
 
   return (
     <Menus>
@@ -60,7 +53,7 @@ function CabinTable() {
 
         <Table.Body
           data={sortedCabins}
-          render={(cabin) => <CabinRow key={cabin.id} cabin={cabin} />}
+          render={(cabin: Cabin) => <CabinRow key={cabin.id} cabin={cabin} />}
         />
       </Table>
     </Menus>
