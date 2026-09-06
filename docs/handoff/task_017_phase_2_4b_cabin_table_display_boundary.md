@@ -16,9 +16,9 @@ Base main SHA: `b53c392fe598e239f77448cb6d194e0bd5b42798`
 - Added `cabinTableOptions.ts`, which exports the shared filter/sort option values, narrow contracts, and runtime parsers. It derives `Cabin` from `Tables<"cabins">`.
 - CabinRow explicitly displays `—` for nullable name, capacity, price, and neutral discount values. A non-empty image URL renders the existing image; otherwise the local `No image` placeholder replaces the image element.
 - Duplication is guarded by a real `isDuplicableCabin` predicate. It requires a string name, non-empty string image, numeric capacity, price, and discount, plus a string description. Incomplete rows omit Duplicate while Edit and Delete remain available.
-- Filter URL values narrow to `all | with-discount | no-discount`, with malformed values falling back to `all`. Sort URL values narrow to name, regular-price, and capacity fields with ascending/descending direction, falling back to `name-asc`.
+- Filter URL values narrow to `all | with-discount | no-discount`, with malformed values falling back to `all`. Sort URL values accept exactly the six shared option values (`name`, regular-price, and capacity fields with ascending/descending direction); every other value, including one with a valid prefix and extra segment, falls back to `name-asc`.
 - Sorting uses an explicit nullable comparator: non-null values sort normally, equal values return zero, and null values remain last for both directions. It sorts `[...filteredCabins]`, never the query array or an alias of it.
-- Added `CabinTable.test.jsx` with nullable display/duplicate suppression, malformed sort fallback, and null-last source-array-preserving sort coverage.
+- Added `CabinTable.test.jsx` with nullable display/duplicate suppression, malformed sort fallbacks including a valid-prefix extra segment, and null-last source-array-preserving sort coverage.
 
 ## Not Changed
 
@@ -27,7 +27,7 @@ Base main SHA: `b53c392fe598e239f77448cb6d194e0bd5b42798`
 
 ## Verification
 
-- Baseline and final local `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check` passed. Tests are 5 files / 23 tests.
+- Baseline and final local `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check` passed. Tests are 5 files / 24 tests.
 - `npm audit --omit=dev` retains the known two moderate production React Router v6 advisories; no breaking Router v7 audit fix was applied.
 - The implementation CI run [34028183404](https://github.com/yi0805/17-the-wild-oasis/actions/runs/34028183404) passed on `15f38d299d56464f3897a3fc68cf56471215bc8f`; its `quality` job completed Checkout, Node setup, dependency installation, lint, typecheck, 5 test files / 23 tests, and build successfully. The documentation-only follow-up is verified on the replacement final PR head in the completion report.
 

@@ -83,6 +83,22 @@ describe("CabinTable", () => {
     ).toEqual(["Alpha Cabin", "Zulu Cabin"]);
   });
 
+  it("rejects a malformed sort value with a valid prefix", () => {
+    renderCabinTable(
+      [
+        createCabin({ id: 1, name: "Zulu Cabin", regularPrice: 100 }),
+        createCabin({ id: 2, name: "Alpha Cabin", regularPrice: 10 }),
+      ],
+      "/?sortBy=regularPrice-desc-extra",
+    );
+
+    expect(
+      screen
+        .getAllByText(/^(Alpha Cabin|Zulu Cabin)$/)
+        .map((element) => element.textContent),
+    ).toEqual(["Alpha Cabin", "Zulu Cabin"]);
+  });
+
   it("sorts nullable values last without mutating the source array", () => {
     const cabins = [
       createCabin({ id: 1, name: "Birch Cabin", regularPrice: 200 }),

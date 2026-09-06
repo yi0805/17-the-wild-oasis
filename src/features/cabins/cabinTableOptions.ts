@@ -8,16 +8,6 @@ export const cabinFilterOptions = [
   { value: "no-discount", label: "No discount" },
 ] as const;
 
-export const cabinSortOptions = [
-  { value: "name-asc", label: "Sort by name (A-Z)" },
-  { value: "name-desc", label: "Sort by name (Z-A)" },
-  { value: "regularPrice-asc", label: "Sort by price (low first)" },
-  { value: "regularPrice-desc", label: "Sort by price (high first)" },
-  { value: "maxCapacity-asc", label: "Sort by capacity (low first)" },
-  { value: "maxCapacity-desc", label: "Sort by capacity (high first)" },
-] as const;
-
-export type CabinFilterValue = (typeof cabinFilterOptions)[number]["value"];
 export type CabinSortField = Extract<
   keyof Cabin,
   "name" | "regularPrice" | "maxCapacity"
@@ -28,6 +18,42 @@ export type CabinSort = {
   field: CabinSortField;
   direction: SortDirection;
 };
+
+export const cabinSortOptions = [
+  {
+    value: "name-asc",
+    label: "Sort by name (A-Z)",
+    sort: { field: "name", direction: "asc" },
+  },
+  {
+    value: "name-desc",
+    label: "Sort by name (Z-A)",
+    sort: { field: "name", direction: "desc" },
+  },
+  {
+    value: "regularPrice-asc",
+    label: "Sort by price (low first)",
+    sort: { field: "regularPrice", direction: "asc" },
+  },
+  {
+    value: "regularPrice-desc",
+    label: "Sort by price (high first)",
+    sort: { field: "regularPrice", direction: "desc" },
+  },
+  {
+    value: "maxCapacity-asc",
+    label: "Sort by capacity (low first)",
+    sort: { field: "maxCapacity", direction: "asc" },
+  },
+  {
+    value: "maxCapacity-desc",
+    label: "Sort by capacity (high first)",
+    sort: { field: "maxCapacity", direction: "desc" },
+  },
+] as const;
+
+export type CabinFilterValue = (typeof cabinFilterOptions)[number]["value"];
+export type CabinSortValue = (typeof cabinSortOptions)[number]["value"];
 
 export type DuplicableCabin = Cabin & {
   name: NonNullable<Cabin["name"]>;
@@ -56,17 +82,17 @@ export function parseCabinFilter(value: string | null): CabinFilterValue {
   return "all";
 }
 
-export function parseCabinSort(value: string | null): CabinSort {
-  const [field, direction] = value?.split("-") ?? [];
+function isCabinSortValue(value: string): value is CabinSortValue {
+  return cabinSortOptions.some((option) => option.value === value);
+}
 
-  if (
-    (field === "name" ||
-      field === "regularPrice" ||
-      field === "maxCapacity") &&
-    (direction === "asc" || direction === "desc")
-  ) {
-    return { field, direction };
+export function parseCabinSort(value: string | null): CabinSort {
+  if (!value || !isCabinSortValue(value)) {
+    return { field: "name", direction: "asc" };
   }
+
+  const sortOption = cabinSortOptions.find((option) => option.value === value);
+  if (sortOption) return sortOption.sort;
 
   return { field: "name", direction: "asc" };
 }
