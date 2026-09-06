@@ -4,7 +4,7 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import App from "./App.jsx";
 import ErrorFallback from "./ui/ErrorFallback.jsx";
-import { supabaseConfigurationError } from "./services/supabase.js";
+import { supabaseConfigurationError } from "./services/supabase";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 

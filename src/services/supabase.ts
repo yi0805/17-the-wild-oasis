@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "../types/database.types";
 
 export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabasePublishableKey =
@@ -11,6 +12,6 @@ export const supabaseConfigurationError =
 
 const supabase = supabaseConfigurationError
   ? null
-  : createClient(supabaseUrl, supabasePublishableKey);
+  : createClient<Database>(supabaseUrl, supabasePublishableKey);
 
 export default supabase;
