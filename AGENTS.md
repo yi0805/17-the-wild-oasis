@@ -99,7 +99,7 @@ npm run preview
 
 ### Roles
 
-- ChatGPT: planning, architecture discussion, task definition, and task approval.
+- ChatGPT: planning, architecture discussion, task definition, substantive Pull Request review, and recommendation.
 - Codex: implementation, testing, Git operations, handoff documentation, and Pull Request creation.
 - GitHub: the source of truth for code history, branches, commits, diffs, Pull Requests, and delivery.
 - Human: the final decision-maker; only a human may decide to merge a Pull Request.
@@ -141,7 +141,7 @@ The file must contain:
 ## Next
 ```
 
-A handoff is an accurate summary for the next Codex session, native Codex Pull Request review, and the human final merge decision. It does not replace proper code, tests, commit history, or a Pull Request description. Its content must match the actual Git diff and repository history.
+A handoff is an accurate summary for the next Codex session, Pull Request review, and the human final merge decision. It does not replace proper code, tests, commit history, or a Pull Request description. Its content must match the actual Git diff and repository history.
 
 ### Commit, Pull Request and Completion Report
 
@@ -151,16 +151,17 @@ After implementation and verification:
 2. Immediately before committing, review the final diff, including the handoff, and `git add` only the intended files.
 3. Commit the task with a clear commit message.
 4. Push the completed task branch to GitHub.
-5. Only after implementation, verification, the handoff, commit, and push are complete, create a Pull Request targeting `main`. Do not open a Pull Request early merely to expose work in progress; its opening triggers the configured native Codex review.
+5. Only after implementation, verification, the handoff, commit, and push are complete, create a Pull Request targeting `main`. Do not open a Pull Request early merely to expose work in progress; it must then receive substantive review against its actual GitHub diff before the human merge decision.
 6. The completion report must include the task, branch name, commit hash, Pull Request URL, changed files, actual verification, handoff file path, and known risks/unresolved issues.
 
-### Native Codex Pull Request Review
+### Optional Native Codex Pull Request Review
 
-Native Codex automatic code review is configured outside this repository through Codex GitHub code-review settings. For this repository, review is triggered when a Pull Request opens; the repository code does not enable the feature.
+Automatic Native Codex review is intentionally disabled in external Codex code-review settings because its token/credit cost is not justified for every Pull Request. Repository code does not enable or require automatic Codex review.
 
-- Opening a task Pull Request triggers the first native Codex review. Findings are posted to GitHub for the human to review; the human must allow the configured review to complete and assess its findings before the final merge decision.
 - Do not add or restore a custom GitHub Actions Codex review workflow, `OPENAI_API_KEY`, API-billed `openai/codex-action`, or a `chatgpt-review` label. The earlier experimental GitHub Actions/API review Pull Request was closed without merge, and its branch was deleted.
-- Do not assume that pushing further commits automatically requests another review. After a blocking finding is addressed, the human may manually request another native Codex review from the Pull Request.
+- Native Codex review remains available as an optional, manually requested advisory safety net from a Pull Request. It is not a prerequisite for every merge, and the absence of a Native Codex review submission or findings must not by itself block an otherwise approved Pull Request.
+- The human or ChatGPT may request an additional Native Codex review when a change is materially high-risk or uncertain, including authentication/authorization; Supabase RLS or Storage policies; security-sensitive work; destructive or multi-step database/Storage mutations; complex rollback or partial-failure behaviour; major dependency/framework migrations; broad architecture changes; unusually large or difficult-to-review diffs; or a substantive review that identifies uncertainty needing an independent second opinion. This is judgment-based, not an automatic checklist: routine documentation, lint cleanup, small isolated refactors, and well-understood bug fixes do not require Native Codex review merely because they are Pull Requests.
+- When manually requested, Native Codex findings are advisory and must be assessed for material correctness and approved scope before merge.
 - The human retains final merge authority. Codex must never automatically merge a Pull Request.
 
 ### Repository-Enforced Branch Rules
@@ -170,7 +171,7 @@ GitHub's externally configured `Protect main` ruleset is Active and targets the 
 - The ruleset has no bypasses and enforces Pull Request delivery, resolved review conversations before merge, Squash-only merges, deletion protection, and force-push protection.
 - Required approvals are currently 0 because this is a solo-maintained repository.
 - Status checks, signed commits, deployments, Code Owner/team/latest-push approvals, code scanning/quality/coverage requirements, and automatic Copilot review are not currently required. Status checks must be reconsidered only after Phase 1 CI exists and has stable check names.
-- The GitHub ruleset and native Codex automatic review are separate external systems. The ruleset does not itself ensure native review completion when no review conversation exists; follow the native-review workflow above before the human makes the final merge decision.
+- The GitHub ruleset is separate from Native Codex review and does not require it. Native Codex review is optional and on-demand; required GitHub review conversations must still be resolved before merge, and the human retains final merge authority.
 
 ## Code Review Rules
 
@@ -190,7 +191,7 @@ Review at least:
 
 For Supabase-related changes, explicitly review Auth boundaries, RLS, Storage policies, public browser configuration versus secrets, destructive mutations, and database/Storage consistency. For file replacement or upload flows, prefer creating/uploading the new resource before replacing the existing reference; clean up a safely removable new resource if the primary database write fails; delete an old resource only after a successful replacement and only when it is positively identified as application-owned; and never undo a successful database write and new-resource replacement solely because old-resource cleanup fails.
 
-Native Codex GitHub review is an advisory automated safety net. It must use its platform-defined review/finding format and severity schema, and is not required to emit `APPROVE`/`REQUEST CHANGES`, Blocking/Non-blocking sections, a verification/handoff footer, or `Safe to merge: YES`/`NO`. The absence of native Codex findings does not replace the human final merge decision.
+Native Codex GitHub review is an optional advisory second-review safety net. When manually requested, it uses its platform-defined finding format and severity schema and is not required to emit `APPROVE`/`REQUEST CHANGES`, Blocking/Non-blocking sections, a verification/handoff footer, or `Safe to merge: YES`/`NO`. Its absence does not make `Safe to merge` automatically `NO`; when it is requested, material findings must be assessed before merge.
 
 For ChatGPT or other human-directed substantive reviews, classify findings as **Blocking** (must be fixed before merge) or **Non-blocking** (useful follow-up that does not prevent merge). End the review with `APPROVE` or `REQUEST CHANGES`, Blocking findings, Non-blocking findings, a verification assessment, handoff accuracy, and `Safe to merge: YES` or `Safe to merge: NO`. The human retains final merge authority.
 
