@@ -17,9 +17,9 @@ Base main SHA: `b3baa26666fe3da17f0d9e0af56439e19a8f87df`
 - `cabinToEdit` uses the generated `Tables<"cabins">` row type. That nullable database row is distinct from `CabinFormValues`; explicit fallbacks create valid form defaults without asserting nullable database fields as non-null.
 - `useForm<CabinFormValues>`, submit/error handlers, registration, validation, and `getValues("regularPrice")` are typed.
 - The three numeric registrations use React Hook Form `valueAsNumber: true`. A successful create mutation now receives `maxCapacity: 4`, `regularPrice: 200`, and `discount: 20`, rather than the earlier browser strings `"4"`, `"200"`, and `"20"`.
-- `getCabinImage` preserves unchanged URL strings and narrows uploaded `FileList` values with `item(0)` to `File | string`. If a non-string list has no first `File`, submission returns before either mutation runs.
+- `getCabinImage` preserves non-empty URL strings and narrows uploaded `FileList` values with `item(0)` to `File | string`. An empty file list or a nullable database image represented by the empty form string both become `undefined`, so submission returns before either mutation runs.
 - Typed local wrappers preserve the existing shared Form/Button custom style props without modifying generic UI components. The no-op `type="text"` attribute was removed from the textarea because it is not a textarea attribute.
-- The existing successful-create assertion now expects numeric mutation values. All seven cabin-form behavioural scenarios remain unchanged.
+- The existing successful-create assertion now expects numeric mutation values. A focused nullable-image edit regression test prevents an empty form string from reaching the mutation; all eight cabin-form behavioural scenarios pass.
 
 ## Not Changed
 
@@ -29,7 +29,7 @@ Base main SHA: `b3baa26666fe3da17f0d9e0af56439e19a8f87df`
 
 ## Verification
 
-- Baseline and final local `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check` passed. Tests remain 4 files / 19 tests, including 7 `CreateCabinForm` behaviours.
+- Baseline and final local `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check` passed. Tests are 4 files / 20 tests, including 8 `CreateCabinForm` behaviours.
 - `npm audit --omit=dev` retains the known two moderate production React Router v6 advisories; no breaking Router v7 audit fix was applied.
 - The implementation CI run [34027175294](https://github.com/yi0805/17-the-wild-oasis/actions/runs/34027175294) passed on `4bc8ee0971d07e4d6d2be67d3fd2f442142803cb`; its `quality` job completed Checkout, Node setup, dependency installation, lint, typecheck, 4 test files / 19 tests, and build successfully. The documentation-only follow-up is verified on the replacement final PR head in the completion report.
 

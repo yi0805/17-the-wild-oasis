@@ -48,7 +48,7 @@ function getEditDefaultValues(cabin: Cabin): CabinFormValues {
 }
 
 function getCabinImage(image: CabinFormValues["image"]): File | string | undefined {
-  if (typeof image === "string") return image;
+  if (typeof image === "string") return image || undefined;
 
   return image.item(0) ?? undefined;
 }
