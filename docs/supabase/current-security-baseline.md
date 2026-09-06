@@ -41,7 +41,7 @@ Authenticated
 
 ## Public-table RLS baseline
 
-RLS is enabled on `bookings`, `cabins`, `guests`, and `settings`. No `anon` RLS policies were observed on these tables.
+RLS is enabled on `bookings`, `cabins`, `guests`, and `settings`. No `anon` RLS policies were observed on these tables. The policies below were observed as PERMISSIVE policies.
 
 | Table | Authenticated policies observed |
 | --- | --- |
@@ -59,7 +59,7 @@ Both `anon` and `authenticated` currently have broad table-level grants, includi
 | `avatars` | `true` | `NULL` | `NULL` |
 | `cabin-images` | `true` | `NULL` | `NULL` |
 
-Authenticated bucket-scoped Storage policies exist for SELECT, INSERT, UPDATE, and DELETE on both buckets.
+Authenticated PERMISSIVE bucket-scoped Storage policies exist for SELECT, INSERT, UPDATE, and DELETE on both buckets. Their verified baseline predicate shape is the pure bucket condition: SELECT/DELETE use `USING (bucket_id = '<bucket>'::text)`, INSERT uses `WITH CHECK (bucket_id = '<bucket>'::text)`, and UPDATE uses both expressions. This exact baseline shape is important because the forward migration must not remove ownership-scoped or otherwise restrictive policies.
 
 The following global Storage policy was also observed and is intended for removal by the proposed migration:
 
@@ -69,7 +69,7 @@ command: INSERT
 WITH CHECK (true)
 ```
 
-It has no bucket restriction. Bucket public/private state and file-size/MIME restrictions are deliberately unchanged in Phase 0.5 because the application currently stores public object URLs; file restrictions remain Phase 4 work.
+It is PERMISSIVE and has no bucket restriction. Bucket public/private state and file-size/MIME restrictions are deliberately unchanged in Phase 0.5 because the application currently stores public object URLs; file restrictions remain Phase 4 work.
 
 ## Hosted schema baseline
 
@@ -86,4 +86,4 @@ None of these operational tables has a user/account ownership column. The forwar
 
 ## Proposed follow-up
 
-The first migration is [20260906000000_phase_0_5_security_boundary.sql](/E:/reactPractise/17-the-wild-oasis/supabase/migrations/20260906000000_phase_0_5_security_boundary.sql). It remains unapplied pending ChatGPT/human review, the manual Auth Dashboard changes, and anonymous/authenticated verification.
+The first migration is `supabase/migrations/20260906000000_phase_0_5_security_boundary.sql`. It remains unapplied pending ChatGPT/human review, the manual Auth Dashboard changes, and anonymous/authenticated verification. Its final `cabin-images` target is authenticated SELECT, INSERT, and DELETE, all scoped to that bucket; UPDATE is not retained.

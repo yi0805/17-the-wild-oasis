@@ -18,9 +18,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.cabins TO authenticated;
 GRANT SELECT ON TABLE public.guests TO authenticated;
 GRANT SELECT, UPDATE ON TABLE public.settings TO authenticated;
 
--- Replace only the verified authenticated allow-all baseline policies. Matching
--- their role, command, and true predicate avoids relying on Dashboard display
--- names and leaves unrelated restrictive policies untouched.
+-- Replace only the verified PERMISSIVE authenticated allow-all baseline
+-- policies. Matching role, command, and both predicate slots avoids relying on
+-- Dashboard display names and leaves restrictive policies untouched.
 DO $$
 DECLARE
   policy_record RECORD;
@@ -32,16 +32,29 @@ BEGIN
     JOIN pg_namespace AS namespace_name ON namespace_name.oid = table_name.relnamespace
     WHERE namespace_name.nspname = 'public'
       AND table_name.relname IN ('bookings', 'cabins', 'guests', 'settings')
+      AND policy.polpermissive
       AND policy.polroles = ARRAY[(SELECT oid FROM pg_roles WHERE rolname = 'authenticated')]
       AND (
-        (policy.polcmd = 'r' AND pg_get_expr(policy.polqual, policy.polrelid) = 'true')
-        OR (policy.polcmd = 'a' AND pg_get_expr(policy.polwithcheck, policy.polrelid) = 'true')
+        (
+          policy.polcmd = 'r'
+          AND pg_get_expr(policy.polqual, policy.polrelid) = 'true'
+          AND policy.polwithcheck IS NULL
+        )
+        OR (
+          policy.polcmd = 'a'
+          AND policy.polqual IS NULL
+          AND pg_get_expr(policy.polwithcheck, policy.polrelid) = 'true'
+        )
         OR (
           policy.polcmd = 'w'
           AND pg_get_expr(policy.polqual, policy.polrelid) = 'true'
           AND pg_get_expr(policy.polwithcheck, policy.polrelid) = 'true'
         )
-        OR (policy.polcmd = 'd' AND pg_get_expr(policy.polqual, policy.polrelid) = 'true')
+        OR (
+          policy.polcmd = 'd'
+          AND pg_get_expr(policy.polqual, policy.polrelid) = 'true'
+          AND policy.polwithcheck IS NULL
+        )
       )
   LOOP
     EXECUTE format(
@@ -89,9 +102,9 @@ CREATE POLICY "phase_0_5_settings_select"
 CREATE POLICY "phase_0_5_settings_update"
   ON public.settings FOR UPDATE TO authenticated USING (id = 1) WITH CHECK (id = 1);
 
--- Remove only the verified global, unrestricted public INSERT policy on
--- storage.objects. The structural match is independent of its display name and
--- cannot remove a bucket-scoped policy.
+-- Remove only the verified PERMISSIVE global, unrestricted public INSERT
+-- policy on storage.objects. The structural match is independent of its display
+-- name and cannot remove a bucket-scoped or more restrictive policy.
 DO $$
 DECLARE
   policy_record RECORD;
@@ -103,8 +116,10 @@ BEGIN
     JOIN pg_namespace AS namespace_name ON namespace_name.oid = table_name.relnamespace
     WHERE namespace_name.nspname = 'storage'
       AND table_name.relname = 'objects'
+      AND policy.polpermissive
       AND policy.polroles = ARRAY[0::oid]
       AND policy.polcmd = 'a'
+      AND policy.polqual IS NULL
       AND pg_get_expr(policy.polwithcheck, policy.polrelid) = 'true'
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS %I ON storage.objects', policy_record.polname);
@@ -112,31 +127,38 @@ BEGIN
 END
 $$;
 
--- Replace only authenticated policies whose predicate explicitly scopes one of
--- the two verified application buckets. No unrelated bucket or global policy
--- is selected. Cabin images stay shared assets; avatar uploads are self-scoped.
+-- Replace only the verified PERMISSIVE authenticated bucket policies. Each
+-- candidate must have the exact baseline role, command, and pure single-bucket
+-- predicate shape. Ownership-scoped, restrictive, global, and unrelated-bucket
+-- policies cannot match. Cabin images stay shared assets; avatar uploads are
+-- self-scoped.
 DO $$
 DECLARE
   policy_record RECORD;
 BEGIN
   FOR policy_record IN
-    SELECT DISTINCT policy.polname
+    SELECT policy.polname
     FROM pg_policy AS policy
     JOIN pg_class AS table_name ON table_name.oid = policy.polrelid
     JOIN pg_namespace AS namespace_name ON namespace_name.oid = table_name.relnamespace
-    CROSS JOIN (VALUES ('avatars'), ('cabin-images')) AS target_bucket(bucket_name)
+    CROSS JOIN (
+      VALUES
+        ('r'::"char", '(bucket_id = ''avatars''::text)', NULL::text),
+        ('a'::"char", NULL::text, '(bucket_id = ''avatars''::text)'),
+        ('w'::"char", '(bucket_id = ''avatars''::text)', '(bucket_id = ''avatars''::text)'),
+        ('d'::"char", '(bucket_id = ''avatars''::text)', NULL::text),
+        ('r'::"char", '(bucket_id = ''cabin-images''::text)', NULL::text),
+        ('a'::"char", NULL::text, '(bucket_id = ''cabin-images''::text)'),
+        ('w'::"char", '(bucket_id = ''cabin-images''::text)', '(bucket_id = ''cabin-images''::text)'),
+        ('d'::"char", '(bucket_id = ''cabin-images''::text)', NULL::text)
+    ) AS baseline(expected_command, expected_qual, expected_with_check)
     WHERE namespace_name.nspname = 'storage'
       AND table_name.relname = 'objects'
+      AND policy.polpermissive
       AND policy.polroles = ARRAY[(SELECT oid FROM pg_roles WHERE rolname = 'authenticated')]
-      AND policy.polcmd IN ('r', 'a', 'w', 'd', '*')
-      AND position(
-        quote_literal(target_bucket.bucket_name)
-        IN concat_ws(
-          ' ',
-          pg_get_expr(policy.polqual, policy.polrelid),
-          pg_get_expr(policy.polwithcheck, policy.polrelid)
-        )
-      ) > 0
+      AND policy.polcmd = baseline.expected_command
+      AND pg_get_expr(policy.polqual, policy.polrelid) IS NOT DISTINCT FROM baseline.expected_qual
+      AND pg_get_expr(policy.polwithcheck, policy.polrelid) IS NOT DISTINCT FROM baseline.expected_with_check
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS %I ON storage.objects', policy_record.polname);
   END LOOP;
@@ -144,6 +166,7 @@ END
 $$;
 
 DROP POLICY IF EXISTS "phase_0_5_avatars_insert" ON storage.objects;
+DROP POLICY IF EXISTS "phase_0_5_cabin_images_select" ON storage.objects;
 DROP POLICY IF EXISTS "phase_0_5_cabin_images_insert" ON storage.objects;
 DROP POLICY IF EXISTS "phase_0_5_cabin_images_delete" ON storage.objects;
 
@@ -156,8 +179,12 @@ CREATE POLICY "phase_0_5_avatars_insert"
     AND name LIKE ('avatar-' || auth.uid()::text || '-%')
   );
 
--- Cabin images are shared operational assets. The frontend needs INSERT and
--- DELETE solely to clean up a newly uploaded object after a failed DB write.
+-- Cabin images are shared operational assets. The frontend needs SELECT and
+-- DELETE together to preserve the verified failed-database-write cleanup path,
+-- plus INSERT for the upload that precedes that write.
+CREATE POLICY "phase_0_5_cabin_images_select"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (bucket_id = 'cabin-images');
 CREATE POLICY "phase_0_5_cabin_images_insert"
   ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'cabin-images');

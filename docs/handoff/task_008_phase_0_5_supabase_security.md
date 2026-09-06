@@ -10,15 +10,22 @@ Prepare the approved Phase 0.5 security boundary for review without applying hos
 
 ### Prepared
 
-- Removed the browser-client account-creation capability: the `/users` route, navigation entry, `Users` page, signup form/hook, and `supabase.auth.signUp()` service function.
+- Removed the browser-client account-creation capability: its route, navigation entry, page, form/hook, and signup service function.
 - Added the verified hosted baseline at `docs/supabase/current-security-baseline.md`. It contains configuration, RLS, grant, Storage, and schema metadata only; it is not a historical migration and contains no secrets or production rows.
 - Added the first forward-only, unapplied migration: `supabase/migrations/20260906000000_phase_0_5_security_boundary.sql`.
   - Revokes all table privileges from `anon` for `bookings`, `cabins`, `guests`, and `settings`.
   - Reduces `authenticated` table grants to bookings SELECT/UPDATE/DELETE; cabins SELECT/INSERT/UPDATE/DELETE; guests SELECT; settings SELECT/UPDATE.
-  - Structurally replaces only the verified authenticated allow-all baseline policies with the approved target policies, including `settings.id = 1` restrictions.
-  - Removes the exact global unrestricted `public` INSERT policy on `storage.objects` without relying on its display name.
-  - Replaces authenticated policies scoped to `avatars` and `cabin-images` only. Avatars retain self-scoped INSERT; cabin images retain shared-asset INSERT and failed-write-cleanup DELETE.
+  - Structurally replaces only the verified PERMISSIVE authenticated allow-all baseline policies with the approved target policies, including `settings.id = 1` restrictions.
+  - Removes the exact PERMISSIVE global unrestricted `public` INSERT policy on `storage.objects` without relying on its display name.
+  - Replaces only verified PERMISSIVE authenticated Storage policies with the exact baseline pure-bucket predicate shape. Ownership-scoped, restrictive, global, and unrelated-bucket policies do not match.
+  - Avatars retain self-scoped INSERT. Cabin images retain shared-asset SELECT, INSERT, and DELETE; SELECT plus DELETE preserves the verified failed-database-write cleanup path, and UPDATE remains removed.
 - Added a ROADMAP decision noting that preparation is complete but hosted changes and verification remain pending.
+
+### Review corrections
+
+- Added authenticated, bucket-scoped `cabin-images` SELECT to preserve the verified SELECT-plus-DELETE failed-write cleanup path; UPDATE remains absent.
+- Narrowed destructive table and Storage policy matching to exact verified PERMISSIVE baseline policy shape, role, command, and predicates.
+- Replaced stale present-tense ROADMAP baseline statements with historical wording and removed the local filesystem link from the baseline document.
 
 ## Not Changed
 
@@ -35,16 +42,17 @@ Prepare the approved Phase 0.5 security boundary for review without applying hos
 - `npm run lint` passed with zero warnings. The first invocation immediately after `npm ci` could not locate the local ESLint executable; after confirming `node_modules/.bin/eslint.cmd` existed, an immediate rerun passed without repository changes.
 - `npm run build` passed. Vite retained its existing large-chunk advisory; the generated main chunk is 966.63 kB minified / 277.13 kB gzip.
 - `git diff --check` passed.
-- Repository searches confirmed that no `/users` route, signup form/hook, `signup()` service function, or `signUp(` browser-client call remains under `src/`.
+- Repository searches confirmed that no account-creation route, signup form/hook, or signup service function remains under `src/`.
 - Repository searches confirmed login, logout, current-user retrieval, password update, and profile/avatar update references remain; no service-role key, `auth.admin`, or privileged backend mechanism was introduced.
 - Manually reviewed the complete source, baseline-document, migration, and handoff diff. The migration was not executed.
+- Correction pass: `npm ci`, `npm run lint`, `npm run build`, and `git diff --check` passed. The tracked-file search found no local filesystem path, browser signup call, or removed account-creation route reference; the revised migration was manually reviewed and not executed.
 
 ## Risks / Notes
 
 - The migration is intentionally unapplied pending ChatGPT/human review. Applying it before reviewing the precise hosted baseline could affect authenticated operations access.
 - Browser account creation is removed before public signup is disabled in the Dashboard. Until the human completes that Dashboard change, direct public Auth signup remains a hosted configuration risk.
 - The application still uses public object URLs. Bucket visibility and MIME/size hardening are explicitly deferred.
-- The migration does not alter sequences, table data, schema, Auth schema, bucket records, or unrelated Storage buckets. Authenticated cabin INSERT and the Storage cleanup path require manual verification after approval.
+- The migration does not alter sequences, table data, schema, Auth schema, bucket records, or unrelated Storage buckets. Authenticated cabin INSERT and the SELECT-plus-DELETE Storage cleanup path require manual verification after approval.
 
 ## Next
 
