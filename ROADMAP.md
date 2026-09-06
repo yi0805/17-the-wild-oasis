@@ -13,7 +13,7 @@ On completion, a recruiter should quickly see these four signals:
 
 ## Current State
 
-The project is a Vite + React 18 single-page operations dashboard. Protected routes cover the dashboard, bookings, check-in/out, cabins, users, settings, and account. Supabase provides Auth, PostgreSQL data, and Storage; TanStack Query manages server state; React Hook Form manages forms; styled-components provides UI styling; and Recharts provides dashboard charts.
+The project is a Vite + React 18 single-page operations dashboard. Protected routes cover the dashboard, bookings, check-in/out, cabins, settings, and account. Supabase provides Auth, PostgreSQL data, and Storage; TanStack Query manages server state; React Hook Form manages forms; styled-components provides UI styling; and Recharts provides dashboard charts.
 
 Existing strengths:
 
@@ -38,7 +38,7 @@ Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, Gra
 
 | Area | Current State | Target State | Priority | Resume Value |
 | ---- | ------------- | ------------ | -------- | ------------ |
-| Security and configuration | Supabase URL/publishable key are hard-coded; RLS, Storage policies, and Auth settings are not in the repository and cannot be audited; the login form has prefilled credentials | Environment-based public configuration, no example account, version-controlled Supabase SQL/policy evidence, least-privilege Auth/Storage rules | P0 | High |
+| Security and configuration | Public client configuration is environment-based; verified Supabase baseline/policy evidence and the applied forward migration are version-controlled; canonical deployment/Auth redirect URL remains unresolved | Retain verified least-privilege Auth/RLS/Storage rules and resolve deployment configuration in Phase 3 | P0 | High |
 | Correctness and reliability | `updateSetting` likely requests a single row without `.select()`; cabin upload rollback can delete an edited cabin; query failures are rarely rendered | Tested mutation contracts, safe compensation/rollback, consistent error states | P0 | High |
 | Dependency and lint baseline | Lint fails; two ESLint configs coexist; 8 production audit findings | One active lint config, passing checks, intentional compatible upgrades, and a recorded audit outcome | P0 | High |
 | Automated testing | No test runner or test files | Vitest + React Testing Library behavioural regression suite for critical logic and workflows | P1 | High |
@@ -88,9 +88,9 @@ Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, Gra
 
 #### Phase 0.5 — Supabase Auth / RLS / Storage security review
 
-- [ ] **User-assisted Dashboard review:** determine the actual access model from product requirements and current Supabase configuration. Do not invent staff/admin roles solely for portfolio value.
-- [ ] **User-assisted Dashboard review:** inspect the current Auth provider/sign-up settings, RLS status and policies for `bookings`, `cabins`, `guests` and `settings`, plus Storage policies for `avatars` and `cabin-images`. Verify anonymous access and every real authenticated access path discovered above; do not infer policies from the frontend.
-- [ ] **Repository work:** establish a verified current Supabase schema/policy baseline before adopting migrations. Do not fabricate historical migrations for the existing hosted database; record future changes through version-controlled migrations/configuration.
+- [x] **User-assisted Dashboard review:** established the trusted, equal-operations-user model from product requirements and actual Supabase configuration without inventing staff/admin roles.
+- [x] **User-assisted Dashboard review:** verified Auth settings, RLS/grants for `bookings`, `cabins`, `guests`, and `settings`, and Storage policies for `avatars` and `cabin-images`; verified anonymous denial and each real authenticated access path.
+- [x] **Repository work:** recorded the verified hosted schema/policy baseline and applied the reviewed forward migration manually through Supabase SQL Editor. No historical migration was fabricated.
 
 **Definition of done:** lint and production build pass; no credentials or service-role secrets are tracked; authorization assumptions are documented and backed by real policies; the identified mutation fixes have reproducible manual-verification records. Automated regression tests for those fixes belong in Phase 1.
 
@@ -153,7 +153,7 @@ Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, Gra
 - [ ] `npm run lint`, tests, `npm run typecheck` and `npm run build` pass; typecheck is required only after Phase 2 adds it.
 - [ ] GitHub Actions runs the corresponding checks on pull requests.
 - [ ] No tracked `.env` secrets, service-role keys or demo credentials; only safe example configuration is committed.
-- [ ] Supabase RLS and Storage policies have been verified for anonymous access and every actual authenticated access path; no roles are invented for portfolio presentation.
+- [x] Supabase RLS and Storage policies have been verified for anonymous access and every actual authenticated access path; no roles are invented for portfolio presentation.
 - [ ] Login, protected routes, cabin creation/editing, booking deletion, check-in/out and settings updates are tested or explicitly manually verified.
 - [ ] README accurately distinguishes course-baseline functionality from independently implemented engineering work, and matches the actual implementation, scripts and chosen deployment configuration.
 
@@ -180,9 +180,11 @@ Any performance, coverage, bundle-size, or latency figure may be added to a resu
 - 2026-09-02 cabin image lifecycle review: on a successful edit with a new image, the previous image is currently left in Storage. `createEditCabin` receives only the new image and cabin ID, so it cannot safely delete the old URL. Future cleanup must distinguish positively identified application-owned `cabin-images` objects from external/default/non-owned URLs. If old-object removal fails after a successful row update, preserve the new row/image and record the orphan for retry; never delete the cabin as compensation.
 - 2026-09-03 Phase 0.3: `Uploader.jsx` was confirmed unused by the application and contained broad destructive delete-and-seed operations, so it was removed rather than retained as production functionality. `data-bookings.js`, `data-cabins.js`, and `data-guests.js` remain intentionally as non-executable development/test fixtures. No replacement seeding mechanism was introduced.
 - 2026-09-03 Phase 0.4: removed the unused CRA ESLint configuration and `eslint-config-react-app`; `.eslintrc.cjs` remains the sole active configuration and `vite-plugin-eslint` remains enabled. Split the dark-mode context/hook from the provider component, so lint now passes without weakening `react-refresh/only-export-components`. Resolved the approved compatible package versions: `react-router-dom`/`react-router` 6.30.6 with `@remix-run/router` 1.23.4, `styled-components` 6.5.3, `lodash` 4.18.1, and `ws` 8.21.3 (satisfying the required 8.21.0-or-newer safe line) without upgrading Supabase. The Styled Components production `postcss`/`nanoid` path is gone. `npm audit --omit=dev` now reports two moderate React Router v6 findings: GHSA-wrjc-x8rr-h8h6 (CVE-2025-68470 bypass) and GHSA-337j-9hxr-rhxg (SSR hydration). npm identifies only the breaking `react-router-dom` 7.18.3 upgrade as a fix. This BrowserRouter declarative SPA has no SSR hydration and all current navigation destinations are internal/static or application-prefixed IDs; the v7 migration is deliberately deferred. Recharts v3 and Supabase package upgrades were also deliberately deferred. `npm ci`, lint, build, and direct-loopback `/` and `/login` route delivery passed; authenticated/dashboard interactive verification was not performed because no authorised account was used.
-- Supabase roles, RLS and Auth configuration remain unverified. The roadmap deliberately refers to actual access paths to be discovered, rather than assumed staff/admin roles.
+- Before the Phase 0.5 Dashboard review, Supabase roles, RLS, and Auth configuration were unverified. The roadmap deliberately referred to actual access paths to be discovered, rather than assumed staff/admin roles.
 - If migration management is adopted, first capture and verify the existing hosted schema/policy baseline. Do not manufacture historical migrations; version-control only verified baseline artefacts and future changes.
 - The checked-in Supabase `sb_publishable_...` key is a browser publishable key, not evidence of a service-role-key leak. It still belongs in environment configuration for safer per-environment operation. A `service_role` key must never enter the client bundle.
 - `ProtectedRoute` only controls the React UI. It is not a database authorization boundary; RLS and Storage policies must be inspected in Supabase before making security claims.
-- No Supabase migrations, policy definitions or Auth dashboard configuration are present in the repository, so current RLS/Auth/Storage security cannot be verified from source alone.
+- At the initial audit, no Supabase migrations, policy definitions, or Auth Dashboard configuration were present in the repository, so current RLS/Auth/Storage security could not be verified from source alone.
+- 2026-09-06 Phase 0.5 preparation: the verified hosted baseline, browser-signup removal, and proposed forward-only security migration were prepared for review.
+- 2026-09-06 Phase 0.5 completion: the human disabled public signup, raised the password minimum to 8, manually applied the reviewed migration through Supabase SQL Editor (`Success. No rows returned`), and re-verified metadata plus anonymous and authenticated access paths. The trusted equal-operations-user model is enforced without RBAC. The migration was not applied through Supabase CLI, and CLI migration history remains unreconciled; file-size/MIME limits, successful old cabin-image cleanup, and canonical deployment/Auth redirect URL remain deferred.
 - The project is small enough for incremental TypeScript migration to deliver real value. Convert boundaries first; do not pause feature work for a whole-repository rewrite.
