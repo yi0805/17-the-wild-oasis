@@ -155,9 +155,9 @@ describe("CreateCabinForm", () => {
     await waitFor(() =>
       expect(createEditCabin).toHaveBeenCalledWith({
         name: "Forest Cabin",
-        maxCapacity: "4",
-        regularPrice: "200",
-        discount: "20",
+        maxCapacity: 4,
+        regularPrice: 200,
+        discount: 20,
         description: "Quiet cabin among the trees.",
         image,
       }),

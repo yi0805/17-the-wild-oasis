@@ -1,21 +1,68 @@
-import { useForm } from "react-hook-form";
+import {
+  type SubmitErrorHandler,
+  type SubmitHandler,
+  useForm,
+} from "react-hook-form";
+import styled from "styled-components";
 
 import Input from "../../ui/Input";
-import Form from "../../ui/Form";
+import BaseForm from "../../ui/Form";
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
 import FormRow from "../../ui/FormRow";
 import { useCreateCabin } from "./useCreateCabin";
 import { useEditCabin } from "./useEditCabin";
+import type { createEditCabin } from "../../services/apiCabins";
+import type { Tables } from "../../types/database.types";
 
-function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
-  const { id: editId, ...editValues } = cabinToEdit;
-  const isEditMode = Boolean(editId);
+const Form = styled(BaseForm)<{ type: "modal" | "regular" }>``;
+const SecondaryButton = styled(Button)<{ variation: "secondary" }>``;
 
-  const { register, handleSubmit, reset, getValues, formState } = useForm({
-    defaultValues: isEditMode ? editValues : {},
-  });
+type Cabin = Tables<"cabins">;
+type CabinMutationInput = Parameters<typeof createEditCabin>[0];
+
+type CabinFormValues = {
+  name: NonNullable<CabinMutationInput["name"]>;
+  maxCapacity: NonNullable<CabinMutationInput["maxCapacity"]>;
+  regularPrice: NonNullable<CabinMutationInput["regularPrice"]>;
+  discount: NonNullable<CabinMutationInput["discount"]>;
+  description: NonNullable<CabinMutationInput["description"]>;
+  image: FileList | string;
+};
+
+type CreateCabinFormProps = {
+  cabinToEdit?: Cabin;
+  onCloseModal?: () => void;
+};
+
+function getEditDefaultValues(cabin: Cabin): CabinFormValues {
+  return {
+    name: cabin.name ?? "",
+    maxCapacity: cabin.maxCapacity ?? 0,
+    regularPrice: cabin.regularPrice ?? 0,
+    discount: cabin.discount ?? 0,
+    description: cabin.description ?? "",
+    image: cabin.image ?? "",
+  };
+}
+
+function getCabinImage(image: CabinFormValues["image"]): File | string | undefined {
+  if (typeof image === "string") return image;
+
+  return image.item(0) ?? undefined;
+}
+
+function CreateCabinForm({
+  cabinToEdit,
+  onCloseModal,
+}: CreateCabinFormProps) {
+  const isEditMode = cabinToEdit !== undefined;
+
+  const { register, handleSubmit, reset, getValues, formState } =
+    useForm<CabinFormValues>({
+      defaultValues: cabinToEdit ? getEditDefaultValues(cabinToEdit) : {},
+    });
   const { errors } = formState;
 
   const { isCreating, createCabin } = useCreateCabin();
@@ -23,12 +70,16 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
 
   const isWorking = isCreating || isEditing;
 
-  function onSubmit(data) {
-    const image = typeof data.image === "string" ? data.image : data.image?.[0];
+  const onSubmit: SubmitHandler<CabinFormValues> = (data) => {
+    const image = getCabinImage(data.image);
 
-    if (isEditMode) {
+    if (image === undefined) return;
+
+    const newCabinData: CabinMutationInput = { ...data, image };
+
+    if (cabinToEdit) {
       editCabin(
-        { newCabinData: { ...data, image }, id: editId },
+        { newCabinData, id: cabinToEdit.id },
         {
           onSuccess: () => {
             reset();
@@ -38,7 +89,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
       );
     } else {
       createCabin(
-        { ...data, image: image },
+        newCabinData,
         {
           onSuccess: () => {
             reset();
@@ -47,11 +98,9 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
         },
       );
     }
-  }
+  };
 
-  function onError(error) {
-    // console.log(error);
-  }
+  const onError: SubmitErrorHandler<CabinFormValues> = () => {};
 
   return (
     <Form
@@ -75,6 +124,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
           id="maxCapacity"
           disabled={isWorking}
           {...register("maxCapacity", {
+            valueAsNumber: true,
             required: "This field is required",
             min: {
               value: 1,
@@ -90,6 +140,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
           id="regularPrice"
           disabled={isWorking}
           {...register("regularPrice", {
+            valueAsNumber: true,
             required: "This field is required",
             min: {
               value: 1,
@@ -106,9 +157,10 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
           defaultValue={0}
           disabled={isWorking}
           {...register("discount", {
+            valueAsNumber: true,
             required: "This field is required",
             validate: (value) =>
-              value <= getValues().regularPrice ||
+              value <= getValues("regularPrice") ||
               "Discount must be less than regular price",
           })}
         />
@@ -119,7 +171,6 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
         error={errors?.description?.message}
       >
         <Textarea
-          type="text"
           id="description"
           defaultValue=""
           disabled={isWorking}
@@ -129,7 +180,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
         />
       </FormRow>
 
-      <FormRow label="Cabin photo">
+      <FormRow label="Cabin photo" error={undefined}>
         <FileInput
           id="image"
           accept="image/*"
@@ -139,15 +190,15 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
         />
       </FormRow>
 
-      <FormRow>
+      <FormRow label={undefined} error={undefined}>
         {/* type is an HTML attribute! */}
-        <Button
+        <SecondaryButton
           variation="secondary"
           type="reset"
           onClick={() => onCloseModal?.()}
         >
           Cancel
-        </Button>
+        </SecondaryButton>
         <Button disabled={isWorking}>
           {isEditMode ? "Edit cabin" : "Create new cabin"}
         </Button>
