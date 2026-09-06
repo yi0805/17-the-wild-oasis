@@ -9,6 +9,15 @@ import Modal from "../../ui/Modal";
 import ConfirmDelete from "../../ui/ConfirmDelete";
 import Table from "../../ui/Table";
 import Menus from "../../ui/Menus";
+import { isDuplicableCabin, type Cabin } from "./cabinTableOptions";
+
+const MenuButton = styled(Menus.Button)<{
+  disabled?: boolean;
+  onClick?: () => void;
+}>``;
+const DeleteConfirmation = styled(ConfirmDelete)<{
+  onCloseModal?: () => void;
+}>``;
 
 // const TableRow = styled.div`
 //   display: grid;
@@ -31,6 +40,15 @@ const Img = styled.img`
   transform: scale(1.5) translateX(-7px);
 `;
 
+const ImagePlaceholder = styled.div`
+  display: grid;
+  place-items: center;
+  width: 6.4rem;
+  aspect-ratio: 3 / 2;
+  color: var(--color-grey-500);
+  font-size: 1.2rem;
+`;
+
 const Cabin = styled.div`
   font-size: 1.6rem;
   font-weight: 600;
@@ -49,7 +67,11 @@ const Discount = styled.div`
   color: var(--color-green-700);
 `;
 
-function CabinRow({ cabin }) {
+type CabinRowProps = {
+  cabin: Cabin;
+};
+
+function CabinRow({ cabin }: CabinRowProps) {
   const { isDeleting, deleteCabin } = useDeleteCabin();
   const { isCreating, createCabin } = useCreateCabin();
 
@@ -60,27 +82,40 @@ function CabinRow({ cabin }) {
     regularPrice,
     discount,
     id: cabinID,
-    description,
   } = cabin;
 
+  const canDuplicate = isDuplicableCabin(cabin);
+
   function handleDuplicate() {
+    if (!isDuplicableCabin(cabin)) return;
+
     createCabin({
-      name: `Copy of ${name}`,
-      image,
-      maxCapacity,
-      regularPrice,
-      discount,
-      description,
+      name: `Copy of ${cabin.name}`,
+      image: cabin.image,
+      maxCapacity: cabin.maxCapacity,
+      regularPrice: cabin.regularPrice,
+      discount: cabin.discount,
+      description: cabin.description,
     });
   }
 
   return (
     <Table.Row>
-      <Img src={image} alt={name} />
-      <Cabin>{name}</Cabin>
-      <div>Fits up to {maxCapacity} guests</div>
-      <Price>{formatCurrency(regularPrice)}</Price>
-      {discount ? (
+      {typeof image === "string" && image.length > 0 ? (
+        <Img src={image} alt={name ?? "Cabin"} />
+      ) : (
+        <ImagePlaceholder>No image</ImagePlaceholder>
+      )}
+      <Cabin>{name ?? "—"}</Cabin>
+      <div>
+        {maxCapacity === null ? "—" : `Fits up to ${maxCapacity} guests`}
+      </div>
+      <Price>
+        {typeof regularPrice === "number" && Number.isFinite(regularPrice)
+          ? formatCurrency(regularPrice)
+          : "—"}
+      </Price>
+      {typeof discount === "number" && discount > 0 ? (
         <Discount>{formatCurrency(discount)}</Discount>
       ) : (
         <span>&mdash;</span>
@@ -91,20 +126,22 @@ function CabinRow({ cabin }) {
             <Menus.Toggle id={cabinID} />
 
             <Menus.List id={cabinID}>
-              <Menus.Button
-                icon={<HiSquare2Stack />}
-                onClick={handleDuplicate}
-                disabled={isCreating}
-              >
-                Duplicate
-              </Menus.Button>
+              {canDuplicate && (
+                <MenuButton
+                  icon={<HiSquare2Stack />}
+                  onClick={handleDuplicate}
+                  disabled={isCreating}
+                >
+                  Duplicate
+                </MenuButton>
+              )}
 
               <Modal.Open opens="edit">
-                <Menus.Button icon={<HiPencil />}>Edit</Menus.Button>
+                <MenuButton icon={<HiPencil />}>Edit</MenuButton>
               </Modal.Open>
 
               <Modal.Open opens="delete">
-                <Menus.Button icon={<HiTrash />}>Delete</Menus.Button>
+                <MenuButton icon={<HiTrash />}>Delete</MenuButton>
               </Modal.Open>
             </Menus.List>
           </Menus.Menu>
@@ -114,7 +151,7 @@ function CabinRow({ cabin }) {
           </Modal.Window>
 
           <Modal.Window name="delete">
-            <ConfirmDelete
+            <DeleteConfirmation
               resourceName="cabins"
               disabled={isDeleting}
               onConfirm={() => deleteCabin(cabinID)}
