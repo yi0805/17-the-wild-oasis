@@ -98,9 +98,9 @@ Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, Gra
 
 **Objective:** protect existing behaviour before broad TypeScript migration.
 
-- [ ] Add Vitest and React Testing Library with one shared test setup; avoid coverage targets that reward trivial tests.
+- [x] Add Vitest and React Testing Library with one shared test setup; avoid coverage targets that reward trivial tests.
 - [ ] Add behavioural tests for important user flows and validation. Mock the data-access boundary only where necessary; do not mock TanStack Query, React Hook Form, or internal component details without a concrete reason.
-- [ ] Test service failure/rollback behaviour directly using controlled Supabase and Storage mocks, including the Phase 0 settings-update and cabin image-mutation cases.
+- [x] Test service failure/rollback behaviour directly using controlled Supabase and Storage mocks, including the Phase 0 settings-update and cabin image-mutation cases.
 - [ ] Add GitHub Actions that uses `npm ci` and runs the commands available at this stage: lint, unit/integration tests and production build. Add `npm run typecheck` only in Phase 2 after the script exists.
 
 **Definition of done:** selected high-risk behaviour has stable regression tests; CI reports `npm ci`, lint, tests and build for every pull request; tests do not mutate shared Supabase data.
@@ -187,4 +187,5 @@ Any performance, coverage, bundle-size, or latency figure may be added to a resu
 - At the initial audit, no Supabase migrations, policy definitions, or Auth Dashboard configuration were present in the repository, so current RLS/Auth/Storage security could not be verified from source alone.
 - 2026-09-06 Phase 0.5 preparation: the verified hosted baseline, browser-signup removal, and proposed forward-only security migration were prepared for review.
 - 2026-09-06 Phase 0.5 completion: the human disabled public signup, raised the password minimum to 8, manually applied the reviewed migration through Supabase SQL Editor (`Success. No rows returned`), and re-verified metadata plus anonymous and authenticated access paths. The trusted equal-operations-user model is enforced without RBAC. The migration was not applied through Supabase CLI, and CLI migration history remains unreconciled; file-size/MIME limits, successful old cabin-image cleanup, and canonical deployment/Auth redirect URL remain deferred.
+- 2026-09-06 Phase 1.1: added a Vite-integrated Vitest 0.34 test runner, jsdom, React Testing Library, and shared jest-dom/cleanup setup. Seven service tests use local fluent Supabase/Storage mocks and no environment credentials or hosted data. They cover the Phase 0 `updateSetting` return/error contract and `createEditCabin` upload failures, failed-write image compensation, existing-image handling, and successful new-image creation. UI behavioural tests and GitHub Actions remain deferred to Tasks 010 and 011.
 - The project is small enough for incremental TypeScript migration to deliver real value. Convert boundaries first; do not pause feature work for a whole-repository rewrite.
