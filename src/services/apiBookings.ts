@@ -11,8 +11,9 @@ type BookingFilter = {
   field: "status";
   value: NonNullable<Booking["status"]>;
 };
+type BookingSortField = Extract<keyof Booking, "startDate" | "totalPrice">;
 type BookingSort = {
-  field: "startDate";
+  field: BookingSortField;
   direction: "asc" | "desc";
 };
 type BookingListOptions = {

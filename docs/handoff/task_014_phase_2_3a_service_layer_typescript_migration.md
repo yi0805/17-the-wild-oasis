@@ -14,10 +14,10 @@ Base main SHA: `0e39099630b85ce85b356127fd89aaa93577269e`
 
 - Renamed `apiAuth.js`, `apiBookings.js`, `apiCabins.js`, and `apiSettings.js` to `.ts`.
 - Database contracts use generated `Tables`, `TablesInsert`, and `TablesUpdate` aliases: booking IDs/updates, settings updates, and cabin IDs/insert/update fields remain derived from `database.types.ts`.
-- Added only local non-database service types: login credentials; current-user password, full-name, and avatar input; booking status filter, start-date sort, and pagination options; and cabin mutation input with `File | string` image data.
+- Added only local non-database service types: login credentials; current-user password, full-name, and avatar input; booking status filter, start-date/total-price sort, and pagination options; and cabin mutation input with `File | string` image data.
 - Each service has a small local operation-time client guard. It narrows the nullable client without changing module-import behavior; configured operation behavior is unchanged and missing configuration still reaches the existing entry-point configuration failure path.
 - `apiSettings` retains the ID 1 update/select/single contract and existing public errors.
-- `apiBookings` retains count, ranges, joins, date-string inputs, query errors, update/select/single, and delete behavior. Its narrow filter/sort contract matches actual callers: status equality and start-date ascending/descending sorting.
+- `apiBookings` retains count, ranges, joins, date-string inputs, query errors, update/select/single, and delete behavior. Its narrow filter/sort contract matches actual callers: status equality plus start-date and total-price ascending/descending sorting.
 - `apiCabins` retains upload-before-write, failed-write cleanup, no-storage existing-image edits, and no old-image deletion. The image-path calculation is split only to narrow `File | string`; replacing `replaceAll("/", "")` with global slash replacement is equivalent under the ES2020 target.
 - `apiAuth` uses the official `UserAttributes` type for update payloads and retains login, session, logout, avatar filename, upload, and public URL behavior. A guard handles the SDK's nullable successful-user response before an avatar upload.
 
