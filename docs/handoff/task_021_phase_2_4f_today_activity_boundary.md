@@ -16,9 +16,9 @@ Base main SHA: `697a0e19028ff8f4ce86b908329d499b8f73f9ce`
 - Added `todayActivityTypes.ts`, deriving activity rows from `Awaited<ReturnType<typeof getStaysTodayActivity>>` and narrowing only `unconfirmed` and `checked-in` statuses.
 - Null/undefined activities render the existing `No activities today` state; known statuses retain Arriving/Departing tags and their existing actions.
 - Unknown status values render `Status unavailable` with no check-in or checkout action.
-- Guest relation/name, flag URL, nationality, and nights are guarded with neutral fallbacks. The old nonexistent `country` flag context is corrected to generated `nationality`.
+- Guest relation/name, flag URL, nationality, and nights are guarded with neutral fallbacks. A local flag slot preserves the second grid column when no image is valid, while the old nonexistent `country` flag context is corrected to generated `nationality`.
 - `CheckoutButton` derives its booking ID from `updateBooking` and preserves the existing checkout mutation and disabled state.
-- Added `TodayActivity.test.jsx`: arriving link/flag/nights, departing mutation, empty/null/undefined data, and unknown/missing display data. The suite is 8 files / 43 tests.
+- Added `TodayActivity.test.jsx`: arriving link/flag/nights, departing mutation, empty/null/undefined data, and unknown/missing display data, including the empty flag slot. The suite is 8 files / 43 tests.
 
 ## Not Changed
 

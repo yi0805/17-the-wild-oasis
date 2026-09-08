@@ -44,6 +44,7 @@ describe("TodayActivity", () => {
     renderActivity([createActivity({ status: "pending", numNights: null, guests: null })]);
     expect(await screen.findByText("Status unavailable")).toBeVisible();
     expect(screen.getByText("Guest")).toBeVisible();
+    expect(screen.getByText("Guest").previousElementSibling).toBeEmptyDOMElement();
     expect(screen.getByText("—")).toBeVisible();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Check in" })).not.toBeInTheDocument();

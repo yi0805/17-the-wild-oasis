@@ -18,6 +18,7 @@ const StyledTodayItem = styled.li`
   &:first-child { border-top: 1px solid var(--color-grey-100); }
 `;
 const Guest = styled.div`font-weight: 500;`;
+const FlagSlot = styled.div``;
 const StatusTag = styled(Tag)<{ type: "green" | "blue" }>``;
 const CheckinButton = styled(Button)<{ size: "small"; variation: "primary"; to: string }>``;
 const StatusFallback = styled.span`color: var(--color-grey-500);`;
@@ -42,7 +43,9 @@ function TodayItem({ activity }: TodayItemProps) {
   return (
     <StyledTodayItem>
       {status === "unconfirmed" ? <StatusTag type="green">Arriving</StatusTag> : status === "checked-in" ? <StatusTag type="blue">Departing</StatusTag> : <StatusFallback>Status unavailable</StatusFallback>}
-      {flagUrl && <Flag src={flagUrl} alt={guests?.nationality ? `Flag of ${guests.nationality}` : "Guest flag"} />}
+      <FlagSlot>
+        {flagUrl && <Flag src={flagUrl} alt={guests?.nationality ? `Flag of ${guests.nationality}` : "Guest flag"} />}
+      </FlagSlot>
       <Guest>{guests?.fullName ?? "Guest"}</Guest>
       <div>{formatNights(numNights)}</div>
       {knownStatus && status === "unconfirmed" && <CheckinButton size="small" variation="primary" as={Link} to={`/checkin/${id}`}>Check in</CheckinButton>}
