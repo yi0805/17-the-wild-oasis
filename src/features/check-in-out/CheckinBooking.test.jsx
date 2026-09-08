@@ -39,7 +39,7 @@ function createBooking(overrides = {}) {
     guests: {
       fullName: "Taylor Guest",
       email: "taylor@example.com",
-      country: "New Zealand",
+      nationality: "New Zealand",
       countryFlag: null,
       nationalID: "NZ123456",
     },
@@ -48,10 +48,14 @@ function createBooking(overrides = {}) {
   };
 }
 
-function renderCheckin({ booking = createBooking(), includeToaster = false } = {}) {
+function renderCheckin({
+  booking = createBooking(),
+  settings = { breakfastPrice: 15 },
+  includeToaster = false,
+} = {}) {
   getBooking.mockResolvedValue(booking);
-  getSettings.mockResolvedValue({ breakfastPrice: 15 });
-  updateBooking.mockResolvedValue({ id: booking.id });
+  getSettings.mockResolvedValue(settings);
+  updateBooking.mockResolvedValue({ id: booking?.id ?? 42 });
 
   return renderWithProviders(
     <>
@@ -61,7 +65,7 @@ function renderCheckin({ booking = createBooking(), includeToaster = false } = {
       </Routes>
       {includeToaster && <Toaster />}
     </>,
-    { initialEntries: [`/checkin/${booking.id}`] },
+    { initialEntries: [`/checkin/${booking?.id ?? 42}`] },
   );
 }
 
@@ -181,5 +185,47 @@ describe("CheckinBooking", () => {
       await screen.findByText("There was an error while checking in"),
     ).toBeInTheDocument();
     expect(screen.queryByText("Check-in complete")).not.toBeInTheDocument();
+  });
+
+  it("renders the existing empty state when no booking is available", async () => {
+    renderCheckin({ booking: null });
+
+    expect(await screen.findByText("No booking could be found.")).toBeVisible();
+  });
+
+  it("does not offer breakfast when its existing inclusion state is unknown", async () => {
+    renderCheckin({ booking: createBooking({ hasBreakfast: null }) });
+
+    await screen.findByRole("checkbox", { name: /I confirm that/ });
+    expect(
+      screen.queryByRole("checkbox", { name: /Want to add breakfast/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not offer a fabricated breakfast price when settings are unavailable", async () => {
+    renderCheckin({ settings: { breakfastPrice: null } });
+
+    await screen.findByRole("checkbox", { name: /I confirm that/ });
+    expect(
+      screen.queryByRole("checkbox", { name: /Want to add breakfast/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
+  });
+
+  it("uses neutral payment and guest labels when total or guest data is unavailable", async () => {
+    renderCheckin({
+      booking: createBooking({ totalPrice: null, guests: null }),
+    });
+
+    expect(
+      await screen.findByRole("checkbox", {
+        name: "I confirm that the guest has paid the total amount of —",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: /Want to add breakfast/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
+    expect(screen.queryByText("NaN")).not.toBeInTheDocument();
   });
 });
