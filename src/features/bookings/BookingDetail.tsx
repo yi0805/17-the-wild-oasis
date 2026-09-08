@@ -1,8 +1,10 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { HiArrowUpOnSquare, HiTrash } from "react-icons/hi2";
+import { HiArrowUpOnSquare } from "react-icons/hi2";
+import type { ReactNode } from "react";
 
 import BookingDataBox from "./BookingDataBox";
+import { isBookingStatus } from "./bookingTableOptions";
 import Row from "../../ui/Row";
 import Heading from "../../ui/Heading";
 import Tag from "../../ui/Tag";
@@ -18,10 +20,33 @@ import ConfirmDelete from "../../ui/ConfirmDelete";
 import { useDeleteBooking } from "./useDeleteBooking";
 import Empty from "../../ui/Empty";
 
+const statusToTagName = {
+  unconfirmed: "blue",
+  "checked-in": "green",
+  "checked-out": "silver",
+} as const;
+
 const HeadingGroup = styled.div`
   display: flex;
   gap: 2.4rem;
   align-items: center;
+`;
+
+const HorizontalRow = styled(Row)<{ type: "horizontal" }>``;
+const StatusTag = styled(Tag)<{
+  type: (typeof statusToTagName)[keyof typeof statusToTagName];
+}>``;
+const ActionButton = styled(Button)<{
+  icon?: ReactNode;
+  variation?: "danger" | "secondary";
+}>``;
+const DeleteConfirmation = styled(ConfirmDelete)<{
+  onCloseModal?: () => void;
+}>``;
+
+const StatusFallback = styled.span`
+  color: var(--color-grey-500);
+  font-size: 1.4rem;
 `;
 
 function BookingDetail() {
@@ -40,22 +65,23 @@ function BookingDetail() {
   }
 
   const { status, id: bookingId } = booking;
-
-  const statusToTagName = {
-    unconfirmed: "blue",
-    "checked-in": "green",
-    "checked-out": "silver",
-  };
+  const hasKnownStatus = isBookingStatus(status);
 
   return (
     <>
-      <Row type="horizontal">
+      <HorizontalRow type="horizontal">
         <HeadingGroup>
           <Heading as="h1">Booking #{bookingId}</Heading>
-          <Tag type={statusToTagName[status]}>{status.replace("-", " ")}</Tag>
+          {hasKnownStatus ? (
+            <StatusTag type={statusToTagName[status]}>
+              {status.replace("-", " ")}
+            </StatusTag>
+          ) : (
+            <StatusFallback>Status unavailable</StatusFallback>
+          )}
         </HeadingGroup>
         <ButtonText onClick={moveBack}>&larr; Back</ButtonText>
-      </Row>
+      </HorizontalRow>
 
       <BookingDataBox booking={booking} />
 
@@ -67,22 +93,22 @@ function BookingDetail() {
         )}
 
         {status === "checked-in" && (
-          <Button
+          <ActionButton
             icon={<HiArrowUpOnSquare />}
             onClick={() => checkout(bookingId)}
             disabled={isCheckingOut}
           >
             Check out
-          </Button>
+          </ActionButton>
         )}
 
         <Modal>
           <Modal.Open opens="delete">
-            <Button variation="danger">Delete booking</Button>
+            <ActionButton variation="danger">Delete booking</ActionButton>
           </Modal.Open>
 
           <Modal.Window name="delete">
-            <ConfirmDelete
+            <DeleteConfirmation
               resourceName="booking"
               onConfirm={() =>
                 deleteBooking(bookingId, {
@@ -94,9 +120,9 @@ function BookingDetail() {
           </Modal.Window>
         </Modal>
 
-        <Button variation="secondary" onClick={moveBack}>
+        <ActionButton variation="secondary" onClick={moveBack}>
           Back
-        </Button>
+        </ActionButton>
       </ButtonGroup>
     </>
   );
