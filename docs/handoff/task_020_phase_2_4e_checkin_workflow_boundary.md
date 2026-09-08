@@ -16,12 +16,12 @@ Base main SHA: `b5514d2219c95109fa16d0b24ffa1731a52ee441`
 - Derived booking, settings, and update contracts from `getBooking`, `getSettings`, and `updateBooking`; no handwritten database model was added.
 - Added an existing `Empty` state after loading when no booking is available, before any booking destructuring occurs.
 - Breakfast calculations now require finite settings breakfast price, nights, guests, and original total price. The derived view model carries only validated numeric values for display and mutation.
-- The breakfast option appears only when `hasBreakfast === false` and a valid calculation exists. `true` and `null` do not expose it.
-- The check-in handler independently returns without mutating if the selected-breakfast branch lacks a valid calculation, preventing null, coerced-zero, or `NaN` payload values.
+- The breakfast option and the effective selected-breakfast calculation both require `hasBreakfast === false` and a valid calculation. A refetched `true` or `null` value cannot leave a stale breakfast adjustment displayed or selected.
+- The check-in handler sends breakfast fields only from that effective selection; an ineligible stale local selection falls through to the existing no-breakfast payload, preventing null, coerced-zero, `NaN`, or duplicate-breakfast values.
 - Missing total price uses `—`; missing guest relation/name uses `the guest`. No check-in confirmation displays fabricated currency, `undefined`, or `null`.
 - Payment confirmation still initializes from `booking.isPaid ?? false`, and selecting breakfast still resets confirmation.
 - Valid normal mutations remain `{ status: "checked-in", isPaid: true }` without breakfast and the existing `hasBreakfast`, `extrasPrice`, and recalculated `totalPrice` payload with breakfast.
-- Updated the test fixture to use generated `guests.nationality` instead of nonexistent `guests.country`, and added four targeted nullable-workflow tests.
+- Updated the test fixture to use generated `guests.nationality` instead of nonexistent `guests.country`, and added five targeted nullable/workflow regression tests, including a refetch that makes an already selected breakfast ineligible.
 
 ## Not Changed
 
@@ -31,7 +31,7 @@ Base main SHA: `b5514d2219c95109fa16d0b24ffa1731a52ee441`
 ## Verification
 
 - Baseline on `b5514d2219c95109fa16d0b24ffa1731a52ee441`: `npm ci`, lint, and typecheck passed before implementation.
-- Final local checks passed: `npm run lint`, `npm run typecheck`, `npm test` (7 files / 36 tests), `npm run build`, and `git diff --check`.
+- Final local checks passed: `npm run lint`, `npm run typecheck`, `npm test` (7 files / 37 tests), `npm run build`, and `git diff --check`.
 - `npm audit --omit=dev` retains the known two moderate React Router v6 advisories. The available fix is the out-of-scope breaking Router v7 upgrade, so no audit change was made.
 - The known Vite large-chunk advisory remains unchanged.
 - Final PR head and GitHub Actions run are recorded in the completion report after the workflow completes.

@@ -170,6 +170,42 @@ describe("CheckinBooking", () => {
     expect(checkinButton).toBeDisabled();
   });
 
+  it("does not send breakfast fields after a refetch makes breakfast ineligible", async () => {
+    const user = userEvent.setup();
+    const { queryClient } = renderCheckin();
+
+    await user.click(
+      await screen.findByRole("checkbox", {
+        name: "Want to add breakfast for $90.00?",
+      }),
+    );
+
+    getBooking.mockResolvedValue(createBooking({ hasBreakfast: true }));
+    await queryClient.invalidateQueries({ queryKey: ["booking"] });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("checkbox", { name: /Want to add breakfast/ }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole("checkbox", {
+        name: "I confirm that Taylor Guest has paid the total amount of $600.00",
+      }),
+    ).toBeInTheDocument();
+
+    await confirmPayment(user);
+    await user.click(
+      screen.getByRole("button", { name: "Check in booking #42" }),
+    );
+
+    await waitFor(() => expect(updateBooking).toHaveBeenCalledOnce());
+    expect(updateBooking).toHaveBeenLastCalledWith(42, {
+      status: "checked-in",
+      isPaid: true,
+    });
+  });
+
   it("does not navigate away when the check-in mutation fails", async () => {
     const user = userEvent.setup();
     renderCheckin({ includeToaster: true });

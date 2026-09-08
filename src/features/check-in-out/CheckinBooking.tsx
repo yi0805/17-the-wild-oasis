@@ -126,7 +126,8 @@ function CheckinBooking() {
   );
   const canAddBreakfast =
     hasBreakfast === false && breakfastCalculation !== null;
-  const selectedBreakfastCalculation = addBreakfast ? breakfastCalculation : null;
+  const selectedBreakfastCalculation =
+    canAddBreakfast && addBreakfast ? breakfastCalculation : null;
   const displayedTotalPrice = selectedBreakfastCalculation
     ? selectedBreakfastCalculation.totalPrice
     : totalPrice;
@@ -134,13 +135,11 @@ function CheckinBooking() {
   function handleCheckin() {
     if (!confirmPaid) return;
 
-    if (addBreakfast) {
-      if (!breakfastCalculation) return;
-
+    if (selectedBreakfastCalculation) {
       const breakfast: BreakfastUpdate = {
         hasBreakfast: true,
-        extrasPrice: breakfastCalculation.price,
-        totalPrice: breakfastCalculation.totalPrice,
+        extrasPrice: selectedBreakfastCalculation.price,
+        totalPrice: selectedBreakfastCalculation.totalPrice,
       };
 
       checkin({ bookingId, breakfast });
