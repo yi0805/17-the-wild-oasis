@@ -3,36 +3,23 @@ import { useSearchParams } from "react-router-dom";
 
 import { PAGE_SIZE } from "../../utils/constatns";
 import { getBookings } from "../../services/apiBookings";
-
-type BookingListOptions = Parameters<typeof getBookings>[0];
-type BookingFilter = NonNullable<BookingListOptions["filter"]>;
-type BookingSort = NonNullable<BookingListOptions["sortBy"]>;
-
-function parseBookingSort(value: string): BookingSort {
-  const [field, direction] = value.split("-");
-
-  if (
-    (field === "startDate" || field === "totalPrice") &&
-    (direction === "asc" || direction === "desc")
-  ) {
-    return { field, direction };
-  }
-
-  return { field: "startDate", direction: "desc" };
-}
+import {
+  parseBookingFilter,
+  parseBookingSort,
+  type BookingFilter,
+} from "./bookingTableOptions";
 
 export function useBookings() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
 
-  const filterValue = searchParams.get("status") || "all";
+  const filterValue = parseBookingFilter(searchParams.get("status"));
   const filter =
-    !filterValue || filterValue === "all"
+    filterValue === "all"
       ? null
       : ({ field: "status", value: filterValue } satisfies BookingFilter);
 
-  const sortByRaw = searchParams.get("sortBy") || "startDate-desc";
-  const sortBy = parseBookingSort(sortByRaw);
+  const sortBy = parseBookingSort(searchParams.get("sortBy"));
 
   const page = !searchParams.get("page") ? 1 : Number(searchParams.get("page"));
 
