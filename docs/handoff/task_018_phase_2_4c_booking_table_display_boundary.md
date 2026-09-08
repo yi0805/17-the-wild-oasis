@@ -28,7 +28,7 @@ Base main SHA: `87f2adb7f62d92808e1abf8bde42a1738f6f2b53`
 
 - Baseline and final local `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check` passed. Tests are 6 files / 28 tests.
 - `npm audit --omit=dev` retains the known two moderate production React Router v6 advisories; no breaking Router v7 audit fix was applied.
-- Final GitHub Actions run ID/URL and final PR-head SHA are recorded after the pull-request workflow completes. It must pass Checkout, Node setup, dependency installation, lint, typecheck, 6 test files / 28 tests, and build.
+- The implementation GitHub Actions [run 34206229765](https://github.com/yi0805/17-the-wild-oasis/actions/runs/34206229765) passed on `6db815d8bb4c6b49f60a2aefa71202c3cd8512a1`: Checkout, Node setup, dependency installation, lint, typecheck, 6 test files / 28 tests, and build all succeeded. The documentation-only follow-up is verified on the replacement final PR head in the completion report.
 
 ## Risks / Notes
 
