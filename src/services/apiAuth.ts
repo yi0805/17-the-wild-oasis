@@ -11,10 +11,57 @@ type UpdateCurrentUserInput = {
   avatar?: File | null;
 };
 type CurrentUserAttributes = Pick<UserAttributes, "password" | "data">;
+type UserMetadata = NonNullable<UserAttributes["data"]>;
+
+const avatarBucket = "avatars";
+const avatarPublicPath = "/storage/v1/object/public/avatars/";
 
 function getSupabaseClient() {
   if (!supabase) throw new Error("Supabase client is unavailable");
   return supabase;
+}
+
+function escapeRegularExpression(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getOwnedAvatarObjectName(
+  avatarUrl: unknown,
+  userId: string,
+  newAvatarName: string,
+) {
+  if (typeof avatarUrl !== "string") return null;
+
+  try {
+    const avatar = new URL(avatarUrl);
+    const project = new URL(supabaseUrl);
+
+    if (
+      avatar.origin !== project.origin ||
+      !avatar.pathname.startsWith(avatarPublicPath)
+    ) {
+      return null;
+    }
+
+    const objectName = decodeURIComponent(
+      avatar.pathname.slice(avatarPublicPath.length),
+    );
+    const avatarNamePattern = new RegExp(
+      `^avatar-${escapeRegularExpression(userId)}-[^/]+$`,
+    );
+
+    if (
+      objectName === newAvatarName ||
+      objectName.includes("/") ||
+      !avatarNamePattern.test(objectName)
+    ) {
+      return null;
+    }
+
+    return objectName;
+  } catch {
+    return null;
+  }
 }
 
 export async function login({ email, password }: LoginCredentials) {
@@ -56,6 +103,7 @@ export async function updateCurrentUser({
   fullName,
   avatar,
 }: UpdateCurrentUserInput) {
+  const client = getSupabaseClient();
   let updateData: CurrentUserAttributes = {};
   if (password) {
     updateData = { password };
@@ -68,40 +116,67 @@ export async function updateCurrentUser({
     };
   }
 
-  const { data, error } = await getSupabaseClient().auth.updateUser(updateData);
+  if (!avatar) {
+    const { data, error } = await client.auth.updateUser(updateData);
 
-  if (error) {
-    throw new Error(error.message);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
   }
 
-  if (!avatar) return data;
+  const { data: currentUserData, error: currentUserError } =
+    await client.auth.getUser();
 
-  if (!data.user) {
-    throw new Error("User could not be updated");
+  if (currentUserError) {
+    throw new Error(currentUserError.message);
   }
 
-  // upload the avater image
-  const filedName = `avatar-${data.user.id}-${Math.random()}`;
+  const currentUser = currentUserData.user;
+  if (!currentUser) {
+    throw new Error("Current user could not be loaded");
+  }
 
-  const { error: storageError } = await getSupabaseClient().storage
-    .from("avatars")
-    .upload(filedName, avatar);
+  const avatarName = `avatar-${currentUser.id}-${Math.random()}`;
+  const avatarUrl = `${supabaseUrl}${avatarPublicPath}${avatarName}`;
+
+  const { error: storageError } = await client.storage
+    .from(avatarBucket)
+    .upload(avatarName, avatar);
 
   if (storageError) {
     throw new Error(storageError.message);
   }
 
-  // update avatar in the user
-  const { data: updateUser, error: updateUserError } =
-    await getSupabaseClient().auth.updateUser({
-      data: {
-        avatar: `${supabaseUrl}/storage/v1/object/public/avatars/${filedName}`,
-      },
-    });
+  const avatarData: UserMetadata = {
+    ...(fullName ? { fullName } : {}),
+    avatar: avatarUrl,
+  };
+  const { data, error } = await client.auth.updateUser({ data: avatarData });
 
-  if (updateUserError) {
-    throw new Error(updateUserError.message);
+  if (error) {
+    const { error: cleanupError } = await client.storage
+      .from(avatarBucket)
+      .remove([avatarName]);
+
+    if (cleanupError) console.error(cleanupError);
+    throw new Error(error.message);
   }
 
-  return updateUser;
+  const previousAvatarName = getOwnedAvatarObjectName(
+    currentUser.user_metadata.avatar,
+    currentUser.id,
+    avatarName,
+  );
+
+  if (previousAvatarName) {
+    const { error: cleanupError } = await client.storage
+      .from(avatarBucket)
+      .remove([previousAvatarName]);
+
+    if (cleanupError) console.error(cleanupError);
+  }
+
+  return data;
 }
