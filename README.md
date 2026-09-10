@@ -8,6 +8,20 @@ The Wild Oasis is a hotel operations dashboard for managing cabins, bookings, ch
 
 Public sign-up is disabled. Authenticated operations access requires an account provisioned outside the browser application; no demo credentials are provided.
 
+## Screenshots
+
+### Dashboard
+
+![The Wild Oasis operations dashboard with key metrics, stay activity, and sales charts](docs/screenshots/dashboard.png)
+
+### Bookings
+
+![Booking management table with operational statuses and filtering controls](docs/screenshots/bookings.png)
+
+### Cabins
+
+![Cabin management table with imagery, capacity, pricing, and operational actions](docs/screenshots/cabins.png)
+
 ## Engineering highlights
 
 - TypeScript/TSX is used throughout the active production application graph, with generated Supabase database contracts at the data boundary.
@@ -119,4 +133,3 @@ Vercel is the verified active deployment platform. The production URL is [https:
 - The production build retains a documented large initial-bundle warning.
 - Broader responsive and accessibility hardening remains Phase 4 work.
 - Supabase security migrations were manually applied through the SQL Editor. Hosted Supabase CLI migration history is not reconciled, so `supabase db push` should not be assumed safe.
-- No verified, non-sensitive application screenshots are currently included; screenshot capture remains separate Phase 3 work.
