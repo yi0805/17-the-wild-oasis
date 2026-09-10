@@ -1,4 +1,5 @@
 import { cloneElement, createContext, useContext, useState } from "react";
+import type { MouseEventHandler, ReactElement, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { HiXMark } from "react-icons/hi2";
 import styled from "styled-components";
@@ -54,30 +55,57 @@ const Button = styled.button`
   }
 `;
 
-const ModalContext = createContext();
+type ModalContextValue = {
+  close: () => void;
+  open: (name: string) => void;
+  openName: string;
+};
+type ModalProps = { children: ReactNode };
+type ModalOpenProps = {
+  children: ReactElement<{ onClick?: MouseEventHandler<HTMLElement> }>;
+  opens: string;
+};
+type ModalWindowProps = {
+  children: ReactElement<{ onCloseModal?: () => void }>;
+  name: string;
+};
+type ModalCompound = ((props: ModalProps) => JSX.Element) & {
+  Open: typeof Open;
+  Window: typeof Window;
+};
 
-function Modal({ children }) {
+const ModalContext = createContext<ModalContextValue | undefined>(undefined);
+
+function useModalContext() {
+  const context = useContext(ModalContext);
+  if (context === undefined) {
+    throw new Error("Modal components must be used within Modal");
+  }
+  return context;
+}
+
+const Modal: ModalCompound = ({ children }) => {
   const [openName, setOpenName] = useState("");
 
   const close = () => setOpenName("");
-  const open = (name) => setOpenName(name);
+  const open = (name: string) => setOpenName(name);
 
   return (
     <ModalContext.Provider value={{ close, open, openName }}>
       {children}
     </ModalContext.Provider>
   );
-}
+};
 
-function Open({ children, opens: opensWindowName }) {
-  const { open } = useContext(ModalContext);
+function Open({ children, opens: opensWindowName }: ModalOpenProps) {
+  const { open } = useModalContext();
 
   return cloneElement(children, { onClick: () => open(opensWindowName) });
 }
 
-function Window({ children, name }) {
-  const { openName, close } = useContext(ModalContext);
-  const ref = useOutsideClick(close);
+function Window({ children, name }: ModalWindowProps) {
+  const { openName, close } = useModalContext();
+  const ref = useOutsideClick<HTMLDivElement>(close);
 
   if (name !== openName) return null;
 
