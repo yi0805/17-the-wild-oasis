@@ -109,7 +109,7 @@ npm run dev
 
 ## Deployment
 
-Vercel is the verified active deployment platform. [vercel.json](vercel.json) rewrites application paths to the SPA entry point. A historical [netlify.tom](netlify.tom) remains in the repository because its current external usage has not been independently ruled out; configuration cleanup is deferred rather than assumed safe.
+Vercel is the verified active deployment platform. The production URL is [https://17-the-wild-oasis-blond.vercel.app](https://17-the-wild-oasis-blond.vercel.app). [vercel.json](vercel.json) rewrites application paths to the SPA entry point.
 
 ## Known limitations and deferred work
 
