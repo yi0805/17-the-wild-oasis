@@ -13,6 +13,20 @@ import { eachDayOfInterval, format, isSameDay, subDays } from "date-fns";
 import DashboardBox from "./DashboardBox";
 import Heading from "../../ui/Heading";
 import { useDarkMode } from "../../context/DarkModeContext";
+import type { getBookingsAfterDate } from "../../services/apiBookings";
+
+type RecentBookings = Awaited<ReturnType<typeof getBookingsAfterDate>>;
+type SalesDataPoint = {
+  label: string;
+  totalSales: number;
+  extrasSales: number;
+};
+type SalesColors = {
+  totalSales: { stroke: string; fill: string };
+  extrasSales: { stroke: string; fill: string };
+  text: string;
+  background: string;
+};
 
 const StyledSalesChart = styled(DashboardBox)`
   grid-column: 1 / -1;
@@ -24,7 +38,12 @@ const StyledSalesChart = styled(DashboardBox)`
   }
 `;
 
-function SalesChart({ bookings, numDays }) {
+type SalesChartProps = {
+  bookings: RecentBookings;
+  numDays: number;
+};
+
+function SalesChart({ bookings, numDays }: SalesChartProps) {
   const { isDarkMode } = useDarkMode();
 
   const allDates = eachDayOfInterval({
@@ -32,20 +51,20 @@ function SalesChart({ bookings, numDays }) {
     end: new Date(),
   });
 
-  const data = allDates.map((date) => {
+  const data: SalesDataPoint[] = allDates.map((date) => {
     return {
       label: format(date, "MMM dd"),
       totalSales: bookings
         .filter((booking) => isSameDay(date, new Date(booking.created_at)))
-        .reduce((acc, cur) => acc + cur.totalPrice, 0),
+        .reduce((acc, cur) => acc + (cur.totalPrice ?? 0), 0),
 
       extrasSales: bookings
         .filter((booking) => isSameDay(date, new Date(booking.created_at)))
-        .reduce((acc, cur) => acc + cur.extrasPrice, 0),
+        .reduce((acc, cur) => acc + (cur.extrasPrice ?? 0), 0),
     };
   });
 
-  const colors = isDarkMode
+  const colors: SalesColors = isDarkMode
     ? {
         totalSales: { stroke: "#4f46e5", fill: "#4f46e5" },
         extrasSales: { stroke: "#22c55e", fill: "#22c55e" },
@@ -62,8 +81,8 @@ function SalesChart({ bookings, numDays }) {
   return (
     <StyledSalesChart>
       <Heading as="h2">
-        Sales from {format(allDates.at(0), "MMM dd yyyy")} &mdash;{" "}
-        {format(allDates.at(-1), "MMM dd yyyy")}
+        Sales from {format(allDates[0], "MMM dd yyyy")} &mdash;{" "}
+        {format(allDates[allDates.length - 1], "MMM dd yyyy")}
       </Heading>
 
       <ResponsiveContainer height={300} width="100%">
