@@ -2,11 +2,17 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { ErrorBoundary } from "react-error-boundary";
 
-import App from "./App.jsx";
+import App from "./App";
 import ErrorFallback from "./ui/ErrorFallback";
 import { supabaseConfigurationError } from "./services/supabase";
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const rootElement = document.getElementById("root");
+
+if (rootElement === null) {
+  throw new Error('Application root element "#root" was not found.');
+}
+
+const root = ReactDOM.createRoot(rootElement);
 
 if (supabaseConfigurationError) {
   root.render(
