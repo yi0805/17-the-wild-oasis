@@ -22,10 +22,18 @@ const Avatar = styled.img`
   outline: 2px solid var(--color-grey-100);
 `;
 
+function getStringMetadataValue(metadata: unknown, key: string) {
+  if (typeof metadata !== "object" || metadata === null) return "";
+
+  const value = (metadata as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : "";
+}
+
 function UserAvatar() {
   const { user } = useUser();
+  const fullName = getStringMetadataValue(user?.user_metadata, "fullName") || "User";
+  const avatar = getStringMetadataValue(user?.user_metadata, "avatar");
 
-  const { fullName, avatar } = user.user_metadata;
   return (
     <StyledUserAvatar>
       <Avatar src={avatar || "default-user.jpg"} alt={fullName} />
