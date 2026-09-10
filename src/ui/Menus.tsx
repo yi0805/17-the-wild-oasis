@@ -16,20 +16,23 @@ const MenuContainer = styled.div`
 
 const StyledToggle = styled.button`
   background: none;
-  border: none;
+  border: 1px solid transparent;
   padding: 0.4rem;
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-md);
   transform: translateX(0.8rem);
-  transition: all 0.2s;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
 
   &:hover {
-    background-color: var(--color-grey-100);
+    background-color: var(--color-brand-100);
+    border-color: var(--color-brand-200);
   }
 
   & svg {
     width: 2.4rem;
     height: 2.4rem;
-    color: var(--color-grey-700);
+    color: var(--color-grey-600);
   }
 `;
 
@@ -41,7 +44,12 @@ const StyledList = styled.ul<{ $position: MenuPosition }>`
 
   background-color: var(--color-grey-0);
   box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-md);
+  overflow: hidden;
+  min-width: 18rem;
+  padding: 0.5rem;
+  z-index: 1200;
 
   right: ${(props) => props.$position.x}px;
   top: ${(props) => props.$position.y}px;
@@ -52,23 +60,24 @@ const StyledButton = styled.button`
   text-align: left;
   background: none;
   border: none;
-  padding: 1.2rem 2.4rem;
+  padding: 1rem 1.2rem;
   font-size: 1.4rem;
-  transition: all 0.2s;
+  font-weight: 500;
+  border-radius: var(--border-radius-sm);
+  transition: background-color 0.16s ease;
 
   display: flex;
   align-items: center;
-  gap: 1.6rem;
+  gap: 1.2rem;
 
   &:hover {
-    background-color: var(--color-grey-50);
+    background-color: var(--color-brand-100);
   }
 
   & svg {
     width: 1.6rem;
     height: 1.6rem;
-    color: var(--color-grey-400);
-    transition: all 0.3s;
+    color: var(--color-brand-500);
   }
 `;
 

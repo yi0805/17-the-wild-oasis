@@ -34,9 +34,9 @@ const StatusTag = styled(Tag)<{ type: "blue" | "green" | "silver" }>``;
 
 const Cabin = styled.div`
   font-size: 1.6rem;
-  font-weight: 600;
-  color: var(--color-grey-600);
-  font-family: "Sono";
+  font-weight: 700;
+  color: var(--color-grey-700);
+  font-variant-numeric: tabular-nums;
 `;
 
 const Stacked = styled.div`
@@ -50,13 +50,13 @@ const Stacked = styled.div`
 
   & span:last-child {
     color: var(--color-grey-500);
-    font-size: 1.2rem;
+    font-size: 1.25rem;
   }
 `;
 
 const Amount = styled.div`
-  font-family: "Sono";
-  font-weight: 500;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
 `;
 
 const statusToTagName: Record<BookingStatus, "blue" | "green" | "silver"> = {

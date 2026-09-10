@@ -4,13 +4,18 @@ import HeaderMenu from "./HeaderMenu";
 import UserAvatar from "../features/authentication/UserAvatar";
 
 const StyledHeader = styled.header`
-  background-color: var(--color-grey-0);
-  padding: 1.2rem 4.8rem;
-  border-bottom: 1px solid var(--color-gray-100);
+  min-width: 0;
+  background-color: var(--color-surface);
+  padding: 1.2rem 4rem;
+  border-bottom: 1px solid var(--color-border-subtle);
   display: flex;
-  gap: 2.4rem;
+  gap: 2rem;
   align-items: center;
   justify-content: flex-end;
+
+  @media (max-width: 1100px) {
+    padding-inline: 3.2rem;
+  }
 `;
 
 function Header() {

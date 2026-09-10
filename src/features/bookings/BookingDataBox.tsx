@@ -23,17 +23,18 @@ type BookingDataBoxProps = {
 };
 
 const StyledBookingDataBox = styled.section`
-  background-color: var(--color-grey-0);
-  border: 1px solid var(--color-grey-100);
-  border-radius: var(--border-radius-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
 
   overflow: hidden;
 `;
 
 const Header = styled.header`
-  background-color: var(--color-brand-500);
-  padding: 2rem 4rem;
-  color: #e0e7ff;
+  background-color: var(--color-brand-700);
+  padding: 2.2rem 3.2rem;
+  color: var(--color-on-brand);
   font-size: 1.8rem;
   font-weight: 500;
   display: flex;
@@ -54,14 +55,14 @@ const Header = styled.header`
   }
 
   & span {
-    font-family: "Sono";
+    font-variant-numeric: tabular-nums;
     font-size: 2rem;
     margin-left: 4px;
   }
 `;
 
 const Section = styled.section`
-  padding: 3.2rem 4rem 1.2rem;
+  padding: 3.2rem 3.2rem 1.2rem;
 `;
 
 const Guest = styled.div`
@@ -81,8 +82,9 @@ const Price = styled.div<{ $paymentState: PaymentState }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.6rem 3.2rem;
-  border-radius: var(--border-radius-sm);
+  padding: 1.6rem 2rem;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: var(--border-radius-md);
   margin-top: 2.4rem;
 
   background-color: ${({ $paymentState }) =>
@@ -112,7 +114,8 @@ const Price = styled.div<{ $paymentState: PaymentState }>`
 `;
 
 const Footer = styled.footer`
-  padding: 1.6rem 4rem;
+  padding: 1.6rem 3.2rem;
+  border-top: 1px solid var(--color-border-subtle);
   font-size: 1.2rem;
   color: var(--color-grey-500);
   text-align: right;

@@ -10,6 +10,8 @@ const Row = styled.div<{ type?: RowType }>`
     css`
       justify-content: space-between;
       align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
     `}
 
   ${(props) =>

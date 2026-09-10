@@ -1,9 +1,11 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 const TableOperations = styled.div`
   display: flex;
   align-items: center;
-  gap: 1.6rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 1.2rem;
 `;
 
 export default TableOperations;

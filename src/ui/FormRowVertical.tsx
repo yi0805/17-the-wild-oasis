@@ -5,12 +5,13 @@ import type { ReactElement, ReactNode } from "react";
 const StyledFormRow = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  padding: 1.2rem 0;
+  gap: 0.7rem;
+  padding: 1rem 0;
 `;
 
 const Label = styled.label`
-  font-weight: 500;
+  color: var(--color-grey-700);
+  font-weight: 600;
 `;
 
 const Error = styled.span`

@@ -14,6 +14,7 @@ const StyledPagination = styled.div`
 const P = styled.p`
   font-size: 1.4rem;
   margin-left: 0.8rem;
+  color: var(--color-text-secondary);
 
   & span {
     font-weight: 600;
@@ -27,11 +28,11 @@ const Buttons = styled.div`
 
 const PaginationButton = styled.button<{ $active?: boolean }>`
   background-color: ${(props) =>
-    props.$active ? " var(--color-brand-600)" : "var(--color-grey-50)"};
-  color: ${(props) => (props.$active ? " var(--color-brand-50)" : "inherit")};
-  border: none;
-  border-radius: var(--border-radius-sm);
-  font-weight: 500;
+    props.$active ? "var(--color-brand-600)" : "var(--color-surface)"};
+  color: ${(props) => (props.$active ? "var(--color-on-brand)" : "inherit")};
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
   font-size: 1.4rem;
 
   display: flex;
@@ -39,7 +40,10 @@ const PaginationButton = styled.button<{ $active?: boolean }>`
   justify-content: center;
   gap: 0.4rem;
   padding: 0.6rem 1.2rem;
-  transition: all 0.3s;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease;
 
   &:has(span:last-child) {
     padding-left: 0.4rem;
@@ -56,7 +60,8 @@ const PaginationButton = styled.button<{ $active?: boolean }>`
 
   &:hover:not(:disabled) {
     background-color: var(--color-brand-600);
-    color: var(--color-brand-50);
+    color: var(--color-on-brand);
+    border-color: var(--color-brand-600);
   }
 `;
 

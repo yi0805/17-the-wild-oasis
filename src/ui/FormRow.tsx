@@ -5,10 +5,10 @@ import type { ReactElement, ReactNode } from "react";
 const StyledFormRow = styled.div`
   display: grid;
   align-items: center;
-  grid-template-columns: 24rem 1fr 1.2fr;
-  gap: 2.4rem;
+  grid-template-columns: minmax(18rem, 24rem) minmax(18rem, 1fr) minmax(12rem, 1.1fr);
+  gap: 2rem;
 
-  padding: 1.2rem 0;
+  padding: 1.5rem 0;
 
   &:first-child {
     padding-top: 0;
@@ -19,7 +19,7 @@ const StyledFormRow = styled.div`
   }
 
   &:not(:last-child) {
-    border-bottom: 1px solid var(--color-grey-100);
+    border-bottom: 1px solid var(--color-border-subtle);
   }
 
   &:has(button) {
@@ -30,12 +30,14 @@ const StyledFormRow = styled.div`
 `;
 
 const Label = styled.label`
-  font-weight: 500;
+  color: var(--color-grey-700);
+  font-weight: 600;
 `;
 
 const Error = styled.span`
   font-size: 1.4rem;
   color: var(--color-red-700);
+  line-height: 1.35;
 `;
 
 type FormControlChild = ReactElement<{ id?: string }>;

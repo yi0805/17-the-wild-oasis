@@ -4,10 +4,13 @@ import { useDarkMode } from "../context/DarkModeContext";
 
 const StyledLogo = styled.div`
   text-align: center;
+  min-height: 8rem;
+  display: grid;
+  place-items: center;
 `;
 
 const Img = styled.img`
-  height: 9.6rem;
+  height: 7.6rem;
   width: auto;
 `;
 
