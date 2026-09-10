@@ -13,9 +13,12 @@ const StyledModal = styled.div`
   transform: translate(-50%, -50%);
   background-color: var(--color-grey-0);
   border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border-subtle);
   box-shadow: var(--shadow-lg);
-  padding: 3.2rem 4rem;
-  transition: all 0.5s;
+  padding: 3.6rem 4rem;
+  max-width: calc(100vw - 4rem);
+  max-height: calc(100vh - 4rem);
+  overflow: auto;
 `;
 
 const Overlay = styled.div`
@@ -25,9 +28,8 @@ const Overlay = styled.div`
   width: 100%;
   height: 100vh;
   background-color: var(--backdrop-color);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   z-index: 1000;
-  transition: all 0.5s;
 `;
 
 const Button = styled.button`
@@ -42,7 +44,7 @@ const Button = styled.button`
   right: 1.9rem;
 
   &:hover {
-    background-color: var(--color-grey-100);
+    background-color: var(--color-brand-100);
   }
 
   & svg {

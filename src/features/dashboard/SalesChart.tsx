@@ -34,7 +34,13 @@ const StyledSalesChart = styled(DashboardBox)`
   /* Hack to change grid line colors */
   & .recharts-cartesian-grid-horizontal line,
   & .recharts-cartesian-grid-vertical line {
-    stroke: var(--color-grey-300);
+    stroke: var(--color-border-subtle);
+  }
+
+  & .recharts-default-tooltip {
+    border: 1px solid var(--color-border-subtle) !important;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
   }
 `;
 
@@ -66,15 +72,15 @@ function SalesChart({ bookings, numDays }: SalesChartProps) {
 
   const colors: SalesColors = isDarkMode
     ? {
-        totalSales: { stroke: "#4f46e5", fill: "#4f46e5" },
-        extrasSales: { stroke: "#22c55e", fill: "#22c55e" },
-        text: "#e5e7eb",
-        background: "#18212f",
+        totalSales: { stroke: "#72b69a", fill: "#24483b" },
+        extrasSales: { stroke: "#d0aa6d", fill: "#4b3d29" },
+        text: "#bac6c0",
+        background: "#202b27",
       }
     : {
-        totalSales: { stroke: "#4f46e5", fill: "#c7d2fe" },
-        extrasSales: { stroke: "#16a34a", fill: "#dcfce7" },
-        text: "#374151",
+        totalSales: { stroke: "#347b62", fill: "#d8ebe2" },
+        extrasSales: { stroke: "#b68a4a", fill: "#f7eedf" },
+        text: "#4b5852",
         background: "#fff",
       };
 
@@ -97,8 +103,11 @@ function SalesChart({ bookings, numDays }: SalesChartProps) {
             tick={{ fill: colors.text }}
             tickLine={{ stroke: colors.text }}
           />
-          <CartesianGrid strokeDasharray="4" />
-          <Tooltip contentStyle={{ backgroundColor: colors.background }} />
+          <CartesianGrid strokeDasharray="3 6" vertical={false} />
+          <Tooltip
+            cursor={{ stroke: colors.text, strokeOpacity: 0.18 }}
+            contentStyle={{ backgroundColor: colors.background }}
+          />
           <Area
             dataKey="totalSales"
             type="monotone"

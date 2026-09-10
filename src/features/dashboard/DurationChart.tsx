@@ -30,12 +30,12 @@ type DurationDataPoint = {
 };
 
 const ChartBox = styled.div`
-  /* Box */
-  background-color: var(--color-grey-0);
-  border: 1px solid var(--color-grey-100);
-  border-radius: var(--border-radius-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
 
-  padding: 2.4rem 3.2rem;
+  padding: 2.8rem;
   grid-column: 3 / span 2;
 
   & > *:first-child {
@@ -45,48 +45,63 @@ const ChartBox = styled.div`
   & .recharts-pie-label-text {
     font-weight: 600;
   }
+
+  & .recharts-legend-item-text {
+    color: var(--color-grey-600) !important;
+  }
+
+  & .recharts-default-tooltip {
+    border: 1px solid var(--color-border-subtle) !important;
+    border-radius: var(--border-radius-md);
+    background-color: var(--color-surface-elevated) !important;
+    box-shadow: var(--shadow-md);
+  }
+
+  @media (max-width: 1150px) {
+    grid-column: 1 / -1;
+  }
 `;
 
 const startDataLight: DurationDataPoint[] = [
   {
     duration: "1 night",
     value: 0,
-    color: "#ef4444",
+    color: "#b85c56",
   },
   {
     duration: "2 nights",
     value: 0,
-    color: "#f97316",
+    color: "#c47a4c",
   },
   {
     duration: "3 nights",
     value: 0,
-    color: "#eab308",
+    color: "#c39a4c",
   },
   {
     duration: "4-5 nights",
     value: 0,
-    color: "#84cc16",
+    color: "#8e9e55",
   },
   {
     duration: "6-7 nights",
     value: 0,
-    color: "#22c55e",
+    color: "#5b936f",
   },
   {
     duration: "8-14 nights",
     value: 0,
-    color: "#14b8a6",
+    color: "#4d9188",
   },
   {
     duration: "15-21 nights",
     value: 0,
-    color: "#3b82f6",
+    color: "#527f9b",
   },
   {
     duration: "21+ nights",
     value: 0,
-    color: "#a855f7",
+    color: "#776b96",
   },
 ];
 
@@ -94,42 +109,42 @@ const startDataDark: DurationDataPoint[] = [
   {
     duration: "1 night",
     value: 0,
-    color: "#b91c1c",
+    color: "#9b5350",
   },
   {
     duration: "2 nights",
     value: 0,
-    color: "#c2410c",
+    color: "#a96542",
   },
   {
     duration: "3 nights",
     value: 0,
-    color: "#a16207",
+    color: "#aa8747",
   },
   {
     duration: "4-5 nights",
     value: 0,
-    color: "#4d7c0f",
+    color: "#7d8a4e",
   },
   {
     duration: "6-7 nights",
     value: 0,
-    color: "#15803d",
+    color: "#4e8061",
   },
   {
     duration: "8-14 nights",
     value: 0,
-    color: "#0f766e",
+    color: "#477d76",
   },
   {
     duration: "15-21 nights",
     value: 0,
-    color: "#1d4ed8",
+    color: "#466e88",
   },
   {
     duration: "21+ nights",
     value: 0,
-    color: "#7e22ce",
+    color: "#655b80",
   },
 ];
 

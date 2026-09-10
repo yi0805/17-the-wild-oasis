@@ -13,16 +13,24 @@ type SelectType = "white";
 
 const StyledSelect = styled.select<{ $type?: SelectType }>`
   font-size: 1.4rem;
-  padding: 0.8rem 1.2rem;
+  min-height: 4rem;
+  padding: 0.8rem 3.2rem 0.8rem 1.2rem;
   border: 1px solid
     ${(props) =>
       props.$type === "white"
-        ? "var(--color-grey-100)"
-        : "var(--color-grey-300)"};
-  border-radius: var(--border-radius-sm);
-  background-color: var(--color-grey-0);
-  font-weight: 500;
+        ? "var(--color-border-subtle)"
+        : "var(--color-border-strong)"};
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-surface);
+  font-weight: 600;
   box-shadow: var(--shadow-sm);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-grey-400);
+  }
 `;
 
 type SelectProps = Omit<

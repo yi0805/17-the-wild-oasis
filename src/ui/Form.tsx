@@ -8,18 +8,18 @@ const Form = styled.form<FormProps>`
   ${(props) =>
     (props.type ?? "regular") === "regular" &&
     css`
-      padding: 2.4rem 4rem;
+      padding: 2.8rem 3.2rem;
 
-      /* Box */
-      background-color: var(--color-grey-0);
-      border: 1px solid var(--color-grey-100);
-      border-radius: var(--border-radius-md);
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-sm);
     `}
 
   ${(props) =>
     props.type === "modal" &&
     css`
-      width: 80rem;
+      width: min(80rem, calc(100vw - 8rem));
     `}
     
   overflow: hidden;

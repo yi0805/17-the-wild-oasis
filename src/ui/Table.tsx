@@ -3,12 +3,13 @@ import type { ReactNode } from "react";
 import styled from "styled-components";
 
 const StyledTable = styled.div`
-  border: 1px solid var(--color-grey-200);
-
+  width: 100%;
+  border: 1px solid var(--color-border-subtle);
   font-size: 1.4rem;
-  background-color: var(--color-grey-0);
-  border-radius: 7px;
-  overflow: hidden;
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius-lg);
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
 `;
 
 const CommonRow = styled.div<{ $columns: string }>`
@@ -17,36 +18,46 @@ const CommonRow = styled.div<{ $columns: string }>`
   column-gap: 2.4rem;
   align-items: center;
   transition: none;
+  min-width: 90rem;
 `;
 
 const StyledHeader = styled(CommonRow)`
-  padding: 1.6rem 2.4rem;
+  padding: 1.4rem 2.4rem;
 
-  background-color: var(--color-grey-50);
-  border-bottom: 1px solid var(--color-grey-100);
+  background-color: var(--color-surface-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  font-weight: 600;
-  color: var(--color-grey-600);
+  letter-spacing: 0.08em;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-grey-500);
 `;
 
 const StyledRow = styled(CommonRow)`
-  padding: 1.2rem 2.4rem;
+  min-height: 6.4rem;
+  padding: 1.15rem 2.4rem;
+  transition: background-color 0.15s ease;
 
   &:not(:last-child) {
-    border-bottom: 1px solid var(--color-grey-100);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  &:hover {
+    background-color: var(--color-surface-secondary);
   }
 `;
 
 const StyledBody = styled.section`
-  margin: 0.4rem 0;
+  min-width: 90rem;
 `;
 
 const Footer = styled.footer`
-  background-color: var(--color-grey-50);
+  min-width: 90rem;
+  background-color: var(--color-surface-secondary);
+  border-top: 1px solid var(--color-border-subtle);
   display: flex;
   justify-content: center;
-  padding: 1.2rem;
+  padding: 1.2rem 1.6rem;
 
   /* This will hide the footer when it contains no child elements. Possible thanks to the parent selector :has 🎉 */
   &:not(:has(*)) {
@@ -59,6 +70,7 @@ const Empty = styled.p`
   font-weight: 500;
   text-align: center;
   margin: 2.4rem;
+  color: var(--color-text-secondary);
 `;
 
 type TableContextValue = { columns: string };

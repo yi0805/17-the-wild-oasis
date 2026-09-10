@@ -33,10 +33,11 @@ type BreakfastCalculation = {
 };
 
 const Box = styled.div`
-  background-color: var(--color-grey-0);
-  border: 1px solid var(--color-grey-100);
-  border-radius: var(--border-radius-md);
-  padding: 2.4rem 4rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+  padding: 2.4rem 3.2rem;
+  box-shadow: var(--shadow-sm);
 `;
 
 const HorizontalRow = styled(Row)<{ type: "horizontal" }>``;

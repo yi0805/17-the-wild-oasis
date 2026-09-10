@@ -9,6 +9,12 @@ import SpinnerMini from "../../ui/SpinnerMini";
 import { useLogin } from "./useLogin";
 
 const LargeButton = styled(Button)<{ size: "large" }>``;
+const LoginFormShell = styled(Form)`
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+`;
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -32,7 +38,7 @@ function LoginForm() {
   }
 
   return (
-    <Form onSubmit={handleSubmit}>
+    <LoginFormShell onSubmit={handleSubmit}>
       <FormRowVertical label="Email address" error={undefined}>
         <Input
           type="email"
@@ -58,7 +64,7 @@ function LoginForm() {
           {!isLoading ? "Log in" : <SpinnerMini />}
         </LargeButton>
       </FormRowVertical>
-    </Form>
+    </LoginFormShell>
   );
 }
 

@@ -4,13 +4,20 @@ import Logo from "./Logo";
 import MainNav from "./MainNav";
 
 const StyledSidebar = styled.aside`
-  background-color: var(--color-grey-0);
-  padding: 3.2rem 2.4rem;
-  border-right: 1px solid var(--color-gray-100);
+  background-color: var(--color-surface);
+  padding: 2.4rem 2rem;
+  border-right: 1px solid var(--color-border-subtle);
   grid-row: 1 / -1;
   display: flex;
   flex-direction: column;
-  gap: 3.2rem;
+  gap: 3.6rem;
+  box-shadow: 1px 0 0 rgba(25, 48, 38, 0.02);
+  z-index: 1;
+
+  & > div:first-child {
+    padding-bottom: 2.4rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
 `;
 
 function Sidebar() {
