@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import type { MouseEventHandler } from "react";
 import Button from "./Button";
 import Heading from "./Heading";
 
@@ -20,7 +21,22 @@ const StyledConfirmDelete = styled.div`
   }
 `;
 
-function ConfirmDelete({ resourceName, onConfirm, disabled, onCloseModal }) {
+const SecondaryButton = styled(Button)<{ variation: "secondary" }>``;
+const DangerButton = styled(Button)<{ variation: "danger" }>``;
+
+type ConfirmDeleteProps = {
+  resourceName: string;
+  onConfirm: MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
+  onCloseModal?: MouseEventHandler<HTMLButtonElement>;
+};
+
+function ConfirmDelete({
+  resourceName,
+  onConfirm,
+  disabled,
+  onCloseModal,
+}: ConfirmDeleteProps) {
   return (
     <StyledConfirmDelete>
       <Heading as="h3">Delete {resourceName}</Heading>
@@ -30,16 +46,16 @@ function ConfirmDelete({ resourceName, onConfirm, disabled, onCloseModal }) {
       </p>
 
       <div>
-        <Button
+        <SecondaryButton
           variation="secondary"
           disabled={disabled}
           onClick={onCloseModal}
         >
           Cancel
-        </Button>
-        <Button variation="danger" disabled={disabled} onClick={onConfirm}>
+        </SecondaryButton>
+        <DangerButton variation="danger" disabled={disabled} onClick={onConfirm}>
           Delete
-        </Button>
+        </DangerButton>
       </div>
     </StyledConfirmDelete>
   );

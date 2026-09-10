@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
 import styled from "styled-components";
 
 const StyledTable = styled.div`
@@ -10,9 +11,9 @@ const StyledTable = styled.div`
   overflow: hidden;
 `;
 
-const CommonRow = styled.div`
+const CommonRow = styled.div<{ $columns: string }>`
   display: grid;
-  grid-template-columns: ${(props) => props.columns};
+  grid-template-columns: ${(props) => props.$columns};
   column-gap: 2.4rem;
   align-items: center;
   transition: none;
@@ -60,35 +61,57 @@ const Empty = styled.p`
   margin: 2.4rem;
 `;
 
-const TableContext = createContext();
+type TableContextValue = { columns: string };
+type TableProps = { columns: string; children: ReactNode };
+type TableSectionProps = { children: ReactNode };
+type TableBodyProps<T> = {
+  data: readonly T[];
+  render: (item: T) => ReactNode;
+};
+type TableCompound = ((props: TableProps) => JSX.Element) & {
+  Header: typeof Header;
+  Row: typeof Row;
+  Body: typeof Body;
+  Footer: typeof Footer;
+};
 
-function Table({ columns, children }) {
+const TableContext = createContext<TableContextValue | undefined>(undefined);
+
+function useTableContext() {
+  const context = useContext(TableContext);
+  if (context === undefined) {
+    throw new Error("Table sections must be used within Table");
+  }
+  return context;
+}
+
+const Table: TableCompound = ({ columns, children }) => {
   return (
     <TableContext.Provider value={{ columns }}>
       <StyledTable role="table">{children}</StyledTable>
     </TableContext.Provider>
   );
-}
+};
 
-function Header({ children }) {
-  const { columns } = useContext(TableContext);
+function Header({ children }: TableSectionProps) {
+  const { columns } = useTableContext();
   return (
-    <StyledHeader as="header" columns={columns}>
+    <StyledHeader as="header" $columns={columns}>
       {children}
     </StyledHeader>
   );
 }
 
-function Row({ children }) {
-  const { columns } = useContext(TableContext);
+function Row({ children }: TableSectionProps) {
+  const { columns } = useTableContext();
   return (
-    <StyledRow role="row" columns={columns}>
+    <StyledRow role="row" $columns={columns}>
       {children}
     </StyledRow>
   );
 }
 
-function Body({ data, render }) {
+function Body<T>({ data, render }: TableBodyProps<T>) {
   if (!data.length) {
     return <Empty>No data to show at the moment</Empty>;
   }
