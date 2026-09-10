@@ -6,6 +6,10 @@ This document records the hosted Supabase baseline observed during Phase 0.5 on 
 
 No secrets, user identities, user rows, application rows, passwords, tokens, or production data are included here.
 
+## Current repository deployment context (not a hosted Auth re-audit)
+
+The repository deployment audit on 2026-09-11 verified Vercel as the active deployment platform and retained its SPA rewrite configuration. It did not re-inspect the hosted Supabase Auth Site URL or redirect allow list. Accordingly, the Netlify/Vercel redirect and unresolved-deployment statements in the Phase 0.5 sections below remain historical baseline evidence, not assertions about the current hosted Auth configuration.
+
 ## Verified pre-change hosted baseline
 
 The following sections preserve the hosted state observed before the approved Phase 0.5 changes were applied.

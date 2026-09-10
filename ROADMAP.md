@@ -11,7 +11,9 @@ On completion, a recruiter should quickly see these four signals:
 3. a real Supabase Auth, RLS, and Storage-policy security boundary; and
 4. automated tests for critical business workflows and GitHub Actions CI.
 
-## Current State
+## Initial Planning Baseline (historical — 2026-09-02)
+
+This section preserves the repository state and measurements that informed the roadmap. It is not a description of the current implementation; completed phases and dated records below describe the current evidence.
 
 The project is a Vite + React 18 single-page operations dashboard. Protected routes cover the dashboard, bookings, check-in/out, cabins, settings, and account. Supabase provides Auth, PostgreSQL data, and Storage; TanStack Query manages server state; React Hook Form manages forms; styled-components provides UI styling; and Recharts provides dashboard charts.
 
@@ -34,9 +36,9 @@ The Wild Oasis should demonstrate that you can make a frontend business applicat
 
 Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, GraphQL, Redux, or a standalone backend to this repository without a clear product reason. Supabase already suits this application; the real gap is engineering the existing client and Supabase boundary, not creating another stack.
 
-## Gap Analysis
+## Initial Gap Analysis (historical — 2026-09-02)
 
-| Area | Current State | Target State | Priority | Resume Value |
+| Area | Initial State | Target State | Priority | Resume Value |
 | ---- | ------------- | ------------ | -------- | ------------ |
 | Security and configuration | Public client configuration is environment-based; verified Supabase baseline/policy evidence and the applied forward migration are version-controlled; canonical deployment/Auth redirect URL remains unresolved | Retain verified least-privilege Auth/RLS/Storage rules and resolve deployment configuration in Phase 3 | P0 | High |
 | Correctness and reliability | `updateSetting` likely requests a single row without `.select()`; cabin upload rollback can delete an edited cabin; query failures are rarely rendered | Tested mutation contracts, safe compensation/rollback, consistent error states | P0 | High |
@@ -126,9 +128,11 @@ Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, Gra
 - [x] Add an **Engineering evolution** section that states the project began from a course/tutorial baseline, distinguishes inherited functionality from independently implemented engineering improvements, and links claims to actual changes.
 - [x] Explain verified design decisions and trade-offs truthfully, including Supabase security, test scope and TypeScript migration. Do not claim tutorial functionality as wholly original work.
 - [x] Identify the real deployment target; retain only its required configuration and remove stale Netlify or Vercel configuration only after confirming it is unused.
-- [ ] Conduct final secret, deployment-config and documentation review.
+- [x] Conduct final secret, deployment-config and documentation review.
 
 **Definition of done:** a reviewer can understand the app, its provenance, its independently implemented improvements and its real deployment path without reading the whole codebase.
+
+**Status:** Complete after the evidence-based Task 036 final review.
 
 ### Phase 4 — Targeted frontend hardening
 
@@ -149,22 +153,22 @@ Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, Gra
 
 ## Final Verification
 
-- [ ] `npm ci` succeeds from `package-lock.json`.
-- [ ] `npm run lint`, tests, `npm run typecheck` and `npm run build` pass; typecheck is required only after Phase 2 adds it.
-- [ ] GitHub Actions runs the corresponding checks on pull requests.
-- [ ] No tracked `.env` secrets, service-role keys or demo credentials; only safe example configuration is committed.
+- [x] `npm ci` succeeds from `package-lock.json`.
+- [x] `npm run lint`, tests, `npm run typecheck` and `npm run build` pass.
+- [x] GitHub Actions runs the corresponding checks on pull requests.
+- [x] No tracked `.env` secrets, service-role keys or demo credentials; only safe example configuration is committed.
 - [x] Supabase RLS and Storage policies have been verified for anonymous access and every actual authenticated access path; no roles are invented for portfolio presentation.
-- [ ] Login, protected routes, cabin creation/editing, booking deletion, check-in/out and settings updates are tested or explicitly manually verified.
-- [ ] README accurately distinguishes course-baseline functionality from independently implemented engineering work, and matches the actual implementation, scripts and chosen deployment configuration.
+- [x] Login, protected routes, cabin creation/editing, booking deletion, check-in/out and settings updates are tested or explicitly manually verified.
+- [x] README accurately distinguishes course-baseline functionality from independently implemented engineering work, and matches the actual implementation, scripts and chosen deployment configuration.
 
 ## Resume Outcome
 
 Once complete, the project can be described truthfully as:
 
-- Built a React + TypeScript operations dashboard using TanStack Query and Supabase, with explicit server-state and mutation handling.
-- Designed and documented Supabase authentication, Row Level Security and Storage access controls for staff workflows.
-- Added focused automated tests and GitHub Actions quality gates for critical booking and cabin-management flows.
-- Improved frontend reliability and accessibility through validated forms, explicit async states and keyboard-accessible UI patterns.
+- Independently evolved a course-based React operations dashboard with an active TypeScript/TSX production graph, TanStack Query, and Supabase data boundaries.
+- Verified and documented the trusted-operator Supabase Auth, Row Level Security, grants, and Storage-policy boundary without inventing staff/admin roles.
+- Added focused automated regression tests and GitHub Actions quality gates for critical login, booking, cabin, and settings workflows.
+- Improved mutation reliability through explicit compensation and safe resource-replacement ordering; broader async-state, accessibility, and responsive hardening remain Phase 4 work.
 
 These statements must clearly distinguish the course/tutorial baseline from the engineering improvements independently completed in this roadmap.
 
@@ -212,4 +216,5 @@ Any performance, coverage, bundle-size, or latency figure may be added to a resu
 - 2026-09-10 Task 031: completed the active production runtime migration to TS/TSX by converting App, main, all remaining page wrappers, and AddCabin. The entry point now targets `main.tsx`, main safely throws when `#root` is missing, and App routing/providers are unchanged. The final `src` JavaScript/JSX inventory is limited to 28 test files, three non-executable development/test fixtures, and five historical/tutorial `-v1`/`-v2` components; active TypeScript production code imports none of them. With no production mixed-JavaScript dependency, `allowJs` and `checkJs` were removed. The runtime-validation decision is recorded truthfully: no general schema dependency is justified now, and file-upload validation remains Phase 4 work. Local `npm ci`, lint, typecheck, 28 test files / 108 tests, build, diff check, and production audit passed with the two documented React Router v6 moderate advisories and existing 974.10 kB minified / 279.47 kB gzip large-chunk warning unchanged. Phase 2 meets its Definition of Done; Phase 3 documentation/release work is next.
 - 2026-09-10 Task 034: refined the application into a restrained hotel-operations SaaS visual system without changing workflows or data behavior. Shared light/dark semantic surfaces, borders, controls, focus states, navigation, tables, statuses, overlays, and dashboard presentation now use a cohesive warm-neutral and forest-green identity. Local browser verification covered Login, Dashboard, Bookings, Cabins, Settings, and Account in both modes at 1440px and 1024px using representative intercepted data for authenticated screens; no screenshots were committed. Phase 3 remains open for verified recruiter screenshots and the final secret/deployment-config/documentation review.
 - 2026-09-11 Task 035: added manually reviewed, non-sensitive light-mode screenshots of the current polished Dashboard, Bookings, and Cabins views to the recruiter-facing README. They were rendered by local current-main application code at 1440 × 1000 using representative intercepted data only; no production identity, production guest data, hosted Supabase mutation, synthetic UI, or image generation was used. The README evidence milestone is complete; the final Phase 3 secret, deployment-config, and documentation review remains open.
+- 2026-09-11 Task 036: completed the final Phase 3 tracked-tree and targeted Git-history credential audit with no real secret found; verified `.env`/`.env.local` ignore rules and the trackable placeholder-only `.env.example`; removed the unused Netlify `_redirects` file after confirming Vite copied it and no tracked deployment workflow consumed it; and rebuilt to confirm it was absent. Vercel root, `/login`, and `/bookings` each returned the application HTML with HTTP 200. Current AGENTS instructions now match the implemented TypeScript, test, and CI state; initial ROADMAP material is explicitly historical; README claims and screenshot paths required no correction; and the Supabase baseline distinguishes current repository deployment evidence from uninspected hosted Auth redirect settings. `npm ci`, lint, typecheck, 28 test files / 108 tests, build, and diff check passed. `npm audit --omit=dev` retained the two documented moderate React Router v6 advisories; the large initial-chunk warning, broader accessibility/responsive hardening, file restrictions, owned cabin-image cleanup, and CLI migration-history reconciliation remain deferred. Phase 3 is complete.
 - The project is small enough for incremental TypeScript migration to deliver real value. Convert boundaries first; do not pause feature work for a whole-repository rewrite.
