@@ -31,6 +31,10 @@ function DashboardLayout() {
     return <Spinner />;
   }
 
+  if (!bookings || !confirmedStays || !cabins) {
+    throw new Error("Dashboard data could not be loaded");
+  }
+
   return (
     <StyledDashboardLayout>
       <Stats

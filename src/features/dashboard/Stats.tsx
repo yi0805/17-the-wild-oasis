@@ -7,17 +7,35 @@ import {
 
 import Stat from "./Stat";
 import { formatCurrency } from "../../utils/helpers";
+import type {
+  getBookingsAfterDate,
+  getStaysAfterDate,
+} from "../../services/apiBookings";
 
-function Stats({ bookings, confirmedStays, numDays, cabinCount }) {
+type RecentBookings = Awaited<ReturnType<typeof getBookingsAfterDate>>;
+type RecentStays = Awaited<ReturnType<typeof getStaysAfterDate>>;
+type StatsProps = {
+  bookings: RecentBookings;
+  confirmedStays: RecentStays;
+  numDays: number;
+  cabinCount: number;
+};
+
+function Stats({
+  bookings,
+  confirmedStays,
+  numDays,
+  cabinCount,
+}: StatsProps) {
   const numBookings = bookings.length;
   const sales = bookings.reduce(
-    (total, booking) => total + booking.totalPrice,
+    (total, booking) => total + (booking.totalPrice ?? 0),
     0,
   );
   const checkins = confirmedStays.length;
 
   const occupation =
-    confirmedStays.reduce((total, stay) => total + stay.numGuests, 0) /
+    confirmedStays.reduce((total, stay) => total + (stay.numGuests ?? 0), 0) /
     (cabinCount * numDays);
 
   return (

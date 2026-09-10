@@ -1,4 +1,7 @@
 import styled from "styled-components";
+import type { ReactNode } from "react";
+
+type StatColor = "blue" | "green" | "indigo" | "yellow";
 
 const StyledStat = styled.div`
   /* Box */
@@ -14,7 +17,7 @@ const StyledStat = styled.div`
   row-gap: 0.4rem;
 `;
 
-const Icon = styled.div`
+const Icon = styled.div<{ $color: StatColor }>`
   grid-row: 1 / -1;
   aspect-ratio: 1;
   border-radius: 50%;
@@ -23,12 +26,12 @@ const Icon = styled.div`
   justify-content: center;
 
   /* Make these dynamic, based on the received prop */
-  background-color: var(--color-${(props) => props.color}-100);
+  background-color: var(--color-${(props) => props.$color}-100);
 
   & svg {
     width: 3.2rem;
     height: 3.2rem;
-    color: var(--color-${(props) => props.color}-700);
+    color: var(--color-${(props) => props.$color}-700);
   }
 `;
 
@@ -47,10 +50,17 @@ const Value = styled.p`
   font-weight: 500;
 `;
 
-function Stat({ icon, title, value, color }) {
+type StatProps = {
+  icon: ReactNode;
+  title: string;
+  value: ReactNode;
+  color: StatColor;
+};
+
+function Stat({ icon, title, value, color }: StatProps) {
   return (
     <StyledStat>
-      <Icon color={color}>{icon}</Icon>
+      <Icon $color={color}>{icon}</Icon>
       <Title>{title}</Title>
       <Value>{value}</Value>
     </StyledStat>

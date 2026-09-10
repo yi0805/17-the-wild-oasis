@@ -7,9 +7,27 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import type { ComponentProps } from "react";
 
 import Heading from "../../ui/Heading";
 import { useDarkMode } from "../../context/DarkModeContext";
+import type { getStaysAfterDate } from "../../services/apiBookings";
+
+type RecentStays = Awaited<ReturnType<typeof getStaysAfterDate>>;
+type Duration =
+  | "1 night"
+  | "2 nights"
+  | "3 nights"
+  | "4-5 nights"
+  | "6-7 nights"
+  | "8-14 nights"
+  | "15-21 nights"
+  | "21+ nights";
+type DurationDataPoint = {
+  duration: Duration;
+  value: number;
+  color: string;
+};
 
 const ChartBox = styled.div`
   /* Box */
@@ -29,7 +47,7 @@ const ChartBox = styled.div`
   }
 `;
 
-const startDataLight = [
+const startDataLight: DurationDataPoint[] = [
   {
     duration: "1 night",
     value: 0,
@@ -72,7 +90,7 @@ const startDataLight = [
   },
 ];
 
-const startDataDark = [
+const startDataDark: DurationDataPoint[] = [
   {
     duration: "1 night",
     value: 0,
@@ -115,10 +133,13 @@ const startDataDark = [
   },
 ];
 
-function prepareData(startData, stays) {
+function prepareData(
+  startData: DurationDataPoint[],
+  stays: RecentStays,
+): DurationDataPoint[] {
   // A bit ugly code, but sometimes this is what it takes when working with real data 😅
 
-  function incArrayValue(arr, field) {
+  function incArrayValue(arr: DurationDataPoint[], field: Duration) {
     return arr.map((obj) =>
       obj.duration === field ? { ...obj, value: obj.value + 1 } : obj,
     );
@@ -127,11 +148,12 @@ function prepareData(startData, stays) {
   const data = stays
     .reduce((arr, cur) => {
       const num = cur.numNights;
+      if (num === null) return arr;
       if (num === 1) return incArrayValue(arr, "1 night");
       if (num === 2) return incArrayValue(arr, "2 nights");
       if (num === 3) return incArrayValue(arr, "3 nights");
-      if ([4, 5].includes(num)) return incArrayValue(arr, "4-5 nights");
-      if ([6, 7].includes(num)) return incArrayValue(arr, "6-7 nights");
+      if (num === 4 || num === 5) return incArrayValue(arr, "4-5 nights");
+      if (num === 6 || num === 7) return incArrayValue(arr, "6-7 nights");
       if (num >= 8 && num <= 14) return incArrayValue(arr, "8-14 nights");
       if (num >= 15 && num <= 21) return incArrayValue(arr, "15-21 nights");
       if (num >= 21) return incArrayValue(arr, "21+ nights");
@@ -142,10 +164,17 @@ function prepareData(startData, stays) {
   return data;
 }
 
-function DurationChart({ confirmedStays }) {
+type DurationChartProps = {
+  confirmedStays: RecentStays;
+};
+
+function DurationChart({ confirmedStays }: DurationChartProps) {
   const { isDarkMode } = useDarkMode();
   const startDate = isDarkMode ? startDataDark : startDataLight;
   const data = prepareData(startDate, confirmedStays);
+  // Recharts accepts percentage widths at runtime, but its bundled Legend prop
+  // type only permits numbers.
+  const legendWidth = "30%" as unknown as ComponentProps<typeof Legend>["width"];
 
   return (
     <ChartBox>
@@ -176,7 +205,7 @@ function DurationChart({ confirmedStays }) {
           <Legend
             verticalAlign="middle"
             align="right"
-            width="30%"
+            width={legendWidth}
             layout="vertical"
             iconSize={15}
             iconType="circle"
