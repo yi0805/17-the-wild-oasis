@@ -36,7 +36,7 @@ function PageNotFound() {
         <Heading as="h1">
           The page you are looking for could not be found 😢
         </Heading>
-        <button onClick={moveBack} size="large">
+        <button onClick={moveBack}>
           &larr; Go back
         </button>
       </Box>
