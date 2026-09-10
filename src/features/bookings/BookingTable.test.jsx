@@ -73,6 +73,27 @@ describe("BookingTable", () => {
     expect(await screen.findByText("Check out")).toBeVisible();
   });
 
+  it("deletes the selected booking after its confirmation", async () => {
+    const user = userEvent.setup();
+    deleteBooking.mockResolvedValue({});
+    renderBookingTable({ bookings: [createBooking({ id: 42 })] });
+
+    await screen.findByText("Forest Cabin");
+    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: "Delete booking" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Delete booking" }),
+    ).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+
+    await waitFor(() => {
+      expect(deleteBooking).toHaveBeenCalledTimes(1);
+      expect(deleteBooking).toHaveBeenCalledWith(42);
+    });
+  });
+
   it("falls back to the default sort for malformed sort input", async () => {
     renderBookingTable({
       initialEntry: "/?sortBy=startDate-desc-extra",
