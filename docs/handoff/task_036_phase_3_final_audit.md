@@ -51,8 +51,9 @@ Complete the evidence-based Phase 3 closeout without starting Phase 4 work.
 
 ## ROADMAP final-verification assessment
 
-- `npm ci`, lint, typecheck, tests, build, CI workflow, current tracked-tree credential audit, documented Supabase authorization evidence, critical workflow evidence, and README accuracy are supported by this audit or existing focused tests/handoffs.
-- Critical workflow evidence includes LoginForm, ProtectedRoute, CreateCabinForm and cabin service mutation tests, booking table/delete-confirmation and check-in/out tests, plus UpdateSettingsForm and settings service tests. The full suite passes 28 files / 108 tests.
+- `npm ci`, lint, typecheck, tests, build, CI workflow, current tracked-tree credential audit, documented Supabase authorization evidence, and README accuracy are supported by this audit or existing focused tests/handoffs.
+- Login has focused automated evidence; ProtectedRoute has focused automated evidence; cabin creation/editing has focused form and service-mutation evidence; check-in/out has focused automated evidence; and settings updates have focused form and service evidence. The full suite passes 28 files / 108 tests.
+- Booking deletion implementation exists, and generic delete-confirmation behaviour is tested, but no focused booking-deletion regression or explicit manual-verification record was found. The composite Final Verification item therefore remains unchecked.
 
 ## Changed
 
@@ -85,8 +86,8 @@ Complete the evidence-based Phase 3 closeout without starting Phase 4 work.
 
 ## Phase 3 status
 
-Phase 3 complete
+Phase 3 remains open
 
 ## Next
 
-Begin only a separately scoped Phase 4 task when prioritised; do not treat this audit as authorization to modify hosted services or begin accessibility, responsive, query-state, upload-validation, image-lifecycle, or bundle-optimization work.
+The next separately scoped task should add focused booking-deletion regression coverage, then re-evaluate the Phase 3 closeout. Do not treat this audit as authorization to modify hosted services or begin Phase 4 accessibility, responsive, query-state, upload-validation, image-lifecycle, or bundle-optimization work.
