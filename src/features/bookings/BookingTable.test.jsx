@@ -36,8 +36,12 @@ function createBooking(overrides = {}) {
 function renderBookingTable({
   bookings = [createBooking()],
   initialEntry = "/",
+  getBookingsImplementation,
 } = {}) {
-  getBookings.mockResolvedValue({ data: bookings, count: bookings.length });
+  getBookings.mockImplementation(
+    getBookingsImplementation ??
+      (() => Promise.resolve({ data: bookings, count: bookings.length })),
+  );
 
   return renderWithProviders(<BookingTable />, {
     initialEntries: [initialEntry],
@@ -51,6 +55,50 @@ describe("BookingTable", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("shows loading while the bookings query is pending", () => {
+    renderBookingTable({
+      getBookingsImplementation: () => new Promise(() => {}),
+    });
+
+    expect(
+      screen.getByRole("status", { name: "Loading bookings" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByText("No bookings could be found."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a query error instead of the bookings empty state", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    renderBookingTable({
+      getBookingsImplementation: () =>
+        Promise.reject(new Error("Supabase connection failed")),
+    });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Bookings could not be loaded. Please try again.",
+    );
+    expect(
+      screen.queryByText("No bookings could be found."),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Supabase connection failed")).not.toBeInTheDocument();
+  });
+
+  it("shows the bookings empty state after a successful zero-row query", async () => {
+    renderBookingTable({ bookings: [] });
+
+    expect(
+      await screen.findByText("No bookings could be found."),
+    ).toBeVisible();
+  });
+
+  it("renders a table after a successful booking query with data", async () => {
+    renderBookingTable();
+
+    expect(await screen.findByRole("table")).toBeVisible();
+    expect(screen.getByText("Forest Cabin")).toBeVisible();
   });
 
   it("uses the valid status and sort URL contract while retaining checkout", async () => {

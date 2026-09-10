@@ -5,14 +5,17 @@ import Empty from "../../ui/Empty";
 import { useBookings } from "./useBookings";
 import Spinner from "../../ui/Spinner";
 import Pagination from "../../ui/Pagination";
+import QueryError from "../../ui/QueryError";
 import type { BookingListItem } from "./bookingTableOptions";
 
 function BookingTable() {
-  const { bookings, isLoading, count } = useBookings();
+  const { bookings, isLoading, count, error } = useBookings();
 
   if (isLoading) {
-    return <Spinner />;
+    return <Spinner role="status" aria-label="Loading bookings" />;
   }
+
+  if (error) return <QueryError resourceName="Bookings" />;
 
   if (!bookings?.length) {
     return <Empty resourceName="bookings" />;

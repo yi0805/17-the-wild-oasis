@@ -27,8 +27,13 @@ function createCabin(overrides = {}) {
   };
 }
 
-function renderCabinTable(cabins, initialEntry = "/") {
-  useCabins.mockReturnValue({ cabins, isLoading: false, error: null });
+function renderCabinTable({
+  cabins,
+  isLoading = false,
+  error = null,
+  initialEntry = "/",
+} = {}) {
+  useCabins.mockReturnValue({ cabins, isLoading, error });
 
   return renderWithProviders(<CabinTable />, {
     initialEntries: [initialEntry],
@@ -44,18 +49,63 @@ describe("CabinTable", () => {
     vi.restoreAllMocks();
   });
 
+  it("shows loading instead of treating undefined cabins as an empty result", () => {
+    renderCabinTable({
+      cabins: undefined,
+      isLoading: true,
+      error: new Error("Previous query failed"),
+    });
+
+    expect(
+      screen.getByRole("status", { name: "Loading cabins" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByText("No cabins could be found."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a query error instead of the cabins empty state", () => {
+    renderCabinTable({
+      cabins: undefined,
+      error: new Error("Supabase connection failed"),
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Cabins could not be loaded. Please try again.",
+    );
+    expect(
+      screen.queryByText("No cabins could be found."),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Supabase connection failed")).not.toBeInTheDocument();
+  });
+
+  it("shows the cabins empty state after a successful zero-row query", () => {
+    renderCabinTable({ cabins: [] });
+
+    expect(screen.getByText("No cabins could be found.")).toBeVisible();
+  });
+
+  it("renders a table after a successful cabin query with data", () => {
+    renderCabinTable({ cabins: [createCabin()] });
+
+    expect(screen.getByRole("table")).toBeVisible();
+    expect(screen.getByText("Aspen Cabin")).toBeVisible();
+  });
+
   it("renders nullable cabin values safely and omits duplicate", async () => {
     const user = userEvent.setup();
-    renderCabinTable([
-      createCabin({
-        name: null,
-        image: null,
-        maxCapacity: null,
-        regularPrice: null,
-        discount: null,
-        description: null,
-      }),
-    ]);
+    renderCabinTable({
+      cabins: [
+        createCabin({
+          name: null,
+          image: null,
+          maxCapacity: null,
+          regularPrice: null,
+          discount: null,
+          description: null,
+        }),
+      ],
+    });
 
     expect(screen.getByText("No image")).toBeVisible();
     expect(document.querySelector("img")).toBeNull();
@@ -68,13 +118,13 @@ describe("CabinTable", () => {
   });
 
   it("falls back to name ascending for a malformed sort URL value", () => {
-    renderCabinTable(
-      [
+    renderCabinTable({
+      cabins: [
         createCabin({ id: 1, name: "Zulu Cabin" }),
         createCabin({ id: 2, name: "Alpha Cabin" }),
       ],
-      "/?sortBy=madeUp-desc",
-    );
+      initialEntry: "/?sortBy=madeUp-desc",
+    });
 
     expect(
       screen
@@ -84,13 +134,13 @@ describe("CabinTable", () => {
   });
 
   it("rejects a malformed sort value with a valid prefix", () => {
-    renderCabinTable(
-      [
+    renderCabinTable({
+      cabins: [
         createCabin({ id: 1, name: "Zulu Cabin", regularPrice: 100 }),
         createCabin({ id: 2, name: "Alpha Cabin", regularPrice: 10 }),
       ],
-      "/?sortBy=regularPrice-desc-extra",
-    );
+      initialEntry: "/?sortBy=regularPrice-desc-extra",
+    });
 
     expect(
       screen
@@ -106,7 +156,10 @@ describe("CabinTable", () => {
       createCabin({ id: 3, name: "Cedar Cabin", regularPrice: 100 }),
     ];
 
-    renderCabinTable(cabins, "/?sortBy=regularPrice-asc");
+    renderCabinTable({
+      cabins,
+      initialEntry: "/?sortBy=regularPrice-asc",
+    });
 
     expect(
       screen
