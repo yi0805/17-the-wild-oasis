@@ -16,6 +16,7 @@ Replace the Vite starter README with concise, evidence-led English documentation
 - Added a clear statement that `ProtectedRoute` is a UI navigation guard, while Supabase Auth, database RLS/grants, and Storage policies are the authorization boundary.
 - Documented the active production TypeScript graph without claiming the repository is literally 100% TypeScript.
 - Marked the completed Phase 3 Engineering evolution and verified design-decision checklist items in `ROADMAP.md`.
+- Corrected the linked Supabase security evidence after review identified that its historical Phase 0.5 avatar-policy snapshot omitted the later verified Task 025 same-user SELECT/DELETE policies.
 
 ## Not Changed
 
@@ -29,6 +30,7 @@ Replace the Vite starter README with concise, evidence-led English documentation
 - Verified GitHub `main` at `e95dd8ec6260223f0082383f4a43009cfcd0aab7` before branching.
 - Independently checked `https://17-the-wild-oasis-blond.vercel.app`: it returned HTTP 200 and the application HTML title was `The Wild Oasis`. The GitHub repository homepage points to the same URL.
 - Inspected `package.json`, `.env.example`, `.github/workflows/ci.yml`, `vercel.json`, `netlify.tom`, the Task 031 closeout, relevant Supabase evidence, active services, and the current image inventory before documentation changes.
+- Reviewed the corrected security document against the Task 025 handoff, its manually applied SQL migration, and the current avatar service; README wording remains accurate and was not changed.
 - `npm ci` passed (with existing transitive deprecation warnings).
 - `npm run lint` passed.
 - `npm run typecheck` passed.
@@ -36,6 +38,7 @@ Replace the Vite starter README with concise, evidence-led English documentation
 - `npm run build` passed; the existing large initial-chunk warning remains at 974.10 kB minified / 279.47 kB gzip.
 - `git diff --check` passed.
 - `npm audit --omit=dev` reports the two documented moderate React Router v6 advisories. The available remediation is the intentionally deferred breaking upgrade to `react-router-dom@7.18.3`.
+- After the Task 025 evidence correction, `npm run lint`, `npm run typecheck`, `npm test` (28 test files / 108 tests), `npm run build`, and `git diff --check` passed again. The existing build chunk warning is unchanged.
 
 ## Risks / Notes
 
