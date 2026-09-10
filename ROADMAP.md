@@ -20,7 +20,7 @@ Existing strengths:
 - `services/` broadly separates Supabase calls from the UI, and feature-folder boundaries are generally clear;
 - TanStack Query already has query keys, mutation success/error feedback, and pagination prefetching for cabins and bookings;
 - route-level `ProtectedRoute`, a global `ErrorBoundary`, loading spinners, toasts, and dark mode already exist; and
-- the production build passes, and Netlify and Vercel SPA rewrite configuration already exists.
+- the production build passes, and Vercel SPA rewrite configuration exists.
 
 Audit baseline (2026-09-02): `npm run build` passes; `npm run lint` fails on one `react-refresh/only-export-components` warning because of `--max-warnings 0`; no test script or test files exist; the build produces a 971.74 kB minified / 278.14 kB gzip main chunk; and `npm audit --omit=dev` reports 8 production dependency vulnerabilities (4 moderate, 4 high).
 
@@ -125,7 +125,7 @@ Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, Gra
 - [ ] Replace the Vite starter README with English project summary, screenshots/demo, architecture, data/security model, setup, commands, tests, CI, deployment and verified limitations.
 - [x] Add an **Engineering evolution** section that states the project began from a course/tutorial baseline, distinguishes inherited functionality from independently implemented engineering improvements, and links claims to actual changes.
 - [x] Explain verified design decisions and trade-offs truthfully, including Supabase security, test scope and TypeScript migration. Do not claim tutorial functionality as wholly original work.
-- [ ] Identify the real deployment target; retain only its required configuration and remove stale Netlify or Vercel configuration only after confirming it is unused.
+- [x] Identify the real deployment target; retain only its required configuration and remove stale Netlify or Vercel configuration only after confirming it is unused.
 - [ ] Conduct final secret, deployment-config and documentation review.
 
 **Definition of done:** a reviewer can understand the app, its provenance, its independently implemented improvements and its real deployment path without reading the whole codebase.

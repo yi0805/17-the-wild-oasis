@@ -17,7 +17,7 @@ This project must demonstrate modern React/TypeScript frontend engineering, reli
 | UI | styled-components, react-icons, react-hot-toast |
 | Charts and dates | Recharts, date-fns |
 | Error handling | react-error-boundary |
-| Build/deployment config | Vite 4, Netlify SPA redirects, Vercel rewrites |
+| Build/deployment config | Vite 4, Vercel SPA rewrites |
 | Testing | Not yet installed; ROADMAP Phase 1 will add Vitest + React Testing Library |
 | CI | Not yet configured; ROADMAP Phase 1 will add GitHub Actions |
 
