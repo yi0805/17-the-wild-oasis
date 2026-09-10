@@ -1,6 +1,6 @@
 # Task
 
-025 — Avatar lifecycle mutation safety (Stage 1: repository implementation and Draft PR)
+025 — Avatar lifecycle mutation safety (Stage 2: human hosted verification)
 
 Branch: `task/025-avatar-mutation-safety`
 
@@ -21,12 +21,12 @@ The prior flow wrote full-name metadata before uploading an avatar, then attempt
 - An Auth metadata failure triggers best-effort removal of exactly the newly uploaded avatar; a rollback cleanup failure is logged without masking the Auth failure.
 - After a successful Auth update, a prior avatar is removed only when its parsed URL targets this project's `avatars` public path, its direct object name exactly matches the current user's generated-avatar scheme, and it is not the new object. External, malformed, and other-user values are retained.
 - Added 10 local service tests covering password/full-name paths, lookup/upload/auth failures, rollback semantics, owned cleanup, and non-owned-avatar safety. The suite is 12 files / 72 tests.
-- Added the proposed forward-only `supabase/migrations/20260910000000_avatar_lifecycle_cleanup.sql` migration and recorded repository-only progress in `ROADMAP.md`.
+- Added the forward-only `supabase/migrations/20260910000000_avatar_lifecycle_cleanup.sql` migration and recorded completion in `ROADMAP.md` after human hosted verification.
 
 ## Not Changed
 
-- No hosted Supabase configuration or policy has been changed.
-- No Supabase CLI command, `supabase db push`, migration-history reconciliation, UI boundary, hook, service-role code, dependency, route, Auth setting, RLS table policy, bucket visibility, MIME limit, or file-size limit changed.
+- No further application code, migration SQL, test, dependency, UI boundary, hook, service-role code, route, Auth setting, RLS table policy, bucket visibility, MIME limit, or file-size limit changed during Stage 2.
+- No Supabase CLI command, `supabase db push`, or migration-history reconciliation was used.
 - The historical Phase 0.5 migration and documented baseline remain unchanged.
 
 ## Local Verification
@@ -39,27 +39,33 @@ The prior flow wrote full-name metadata before uploading an avatar, then attempt
 - `git diff --check` passed.
 - `npm audit --omit=dev` reports the two documented moderate React Router v6 advisories. The only available fix is the breaking Router v7 upgrade, which is out of scope.
 
-## Proposed Supabase Policy Change
+## Hosted Supabase Policy Change
 
-`supabase/migrations/20260910000000_avatar_lifecycle_cleanup.sql` adds only these idempotently named authenticated `storage.objects` policies:
+The human manually applied `supabase/migrations/20260910000000_avatar_lifecycle_cleanup.sql` through Supabase SQL Editor. Hosted avatar policies are now:
 
-- `phase_2_5_avatars_select_own`: SELECT where `bucket_id = 'avatars'` and `name LIKE ('avatar-' || auth.uid()::text || '-%')`.
-- `phase_2_5_avatars_delete_own`: DELETE with the same self-scoped bucket/name predicate.
+- `phase_0_5_avatars_insert`: authenticated self-scoped INSERT.
+- `phase_2_5_avatars_select_own`: authenticated self-scoped SELECT where `bucket_id = 'avatars'` and `name LIKE ('avatar-' || auth.uid()::text || '-%')`.
+- `phase_2_5_avatars_delete_own`: authenticated self-scoped DELETE with the same bucket/name predicate.
 
-It adds no UPDATE or anonymous policy and does not alter the existing avatar INSERT rule, cabin-image policies, bucket visibility, MIME restrictions, file-size limits, database RLS, or Auth settings.
+No avatar UPDATE policy or anonymous avatar mutation policy was observed. The migration does not alter cabin-image policies, bucket visibility, MIME restrictions, file-size limits, database RLS, or Auth settings.
 
 ## Manual Hosted Verification
 
-PENDING HUMAN VERIFICATION
+Manual hosted verification is separate from automated CI and was completed successfully by a human against the Task 025 Vercel Preview deployment and hosted Supabase project.
 
-Do not apply this migration through `supabase db push`. After substantive Draft PR review, a human must manually review and apply the SQL through the approved hosted workflow, then verify anonymous denial and authenticated same-user SELECT/DELETE, alongside denial for another user's avatar object.
+- Avatar replacement uploaded a new object, persisted Auth metadata, issued a DELETE for the previous current avatar, received HTTP 200, returned the deleted Storage object, and the object was absent from a later `storage.objects` query.
+- A known existing avatar object returned `target_exists = true` before permission checks.
+- With `ROLE authenticated` and a different synthetic JWT subject, the target object returned `visible_rows = 0`.
+- With `ROLE anon`, the same existing target object returned `visible_rows = 0`.
+
+No real credential, token, user identity, or object name is recorded here.
 
 ## Risks / Notes
 
-- Until the proposed hosted policies are manually applied and verified, new-object rollback and old-avatar cleanup will be attempted but may be denied by the current hosted Storage policy; cleanup failures are deliberately non-fatal and logged while primary Auth semantics are preserved.
 - The service uses the current user returned by Supabase, not UI-provided metadata, for filename ownership and old-avatar cleanup decisions.
 - Tests use only synthetic IDs, URLs, avatar objects, and passwords; no hosted data, identity, credential, or token is used.
+- Historical orphan avatars identified during verification are pre-existing and out of scope. Task 025 intentionally does not bulk-delete historical objects.
 
 ## Next
 
-Obtain human/substantive review of this Draft PR, migration SQL, and lifecycle behaviour. Only after manual hosted application and verification should the PR be marked ready; then review the remaining profile/avatar UI boundary separately for a subsequent TypeScript task.
+Review the PR now that the human hosted verification is recorded; do not merge automatically. Review the remaining profile/avatar UI boundary separately for a subsequent TypeScript task.
