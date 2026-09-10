@@ -123,8 +123,8 @@ Do not add Python/FastAPI, AWS, AI, microservices, Kubernetes, Kafka, Redis, Gra
 **Objective:** make the engineering evidence honest, understandable, and easy to evaluate in 30–60 seconds.
 
 - [ ] Replace the Vite starter README with English project summary, screenshots/demo, architecture, data/security model, setup, commands, tests, CI, deployment and verified limitations.
-- [ ] Add an **Engineering evolution** section that states the project began from a course/tutorial baseline, distinguishes inherited functionality from independently implemented engineering improvements, and links claims to actual changes.
-- [ ] Explain verified design decisions and trade-offs truthfully, including Supabase security, test scope and TypeScript migration. Do not claim tutorial functionality as wholly original work.
+- [x] Add an **Engineering evolution** section that states the project began from a course/tutorial baseline, distinguishes inherited functionality from independently implemented engineering improvements, and links claims to actual changes.
+- [x] Explain verified design decisions and trade-offs truthfully, including Supabase security, test scope and TypeScript migration. Do not claim tutorial functionality as wholly original work.
 - [ ] Identify the real deployment target; retain only its required configuration and remove stale Netlify or Vercel configuration only after confirming it is unused.
 - [ ] Conduct final secret, deployment-config and documentation review.
 
