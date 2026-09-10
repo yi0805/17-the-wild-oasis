@@ -6,6 +6,7 @@ import { useCabins } from "./useCabins";
 import Table from "../../ui/Table";
 import Menus from "../../ui/Menus";
 import Empty from "../../ui/Empty";
+import QueryError from "../../ui/QueryError";
 import {
   parseCabinFilter,
   parseCabinSort,
@@ -14,14 +15,14 @@ import {
 } from "./cabinTableOptions";
 
 function CabinTable() {
-  const { isLoading, cabins } = useCabins();
+  const { isLoading, error, cabins } = useCabins();
   const [searchParams] = useSearchParams();
 
-  if (!cabins?.length) {
-    return <Empty resourceName="cabins" />;
-  }
+  if (isLoading) return <Spinner role="status" aria-label="Loading cabins" />;
 
-  if (isLoading) return <Spinner />;
+  if (error) return <QueryError resourceName="Cabins" />;
+
+  if (!cabins?.length) return <Empty resourceName="cabins" />;
 
   const filterValue = parseCabinFilter(searchParams.get("discount"));
 
