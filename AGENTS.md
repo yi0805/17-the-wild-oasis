@@ -10,7 +10,7 @@ This project must demonstrate modern React/TypeScript frontend engineering, reli
 
 | Layer | Technology |
 | ----- | ---------- |
-| Frontend | React 18, JavaScript/JSX (planned incremental migration to TypeScript), React Router 6 |
+| Frontend | React 18, TypeScript/TSX in the active production graph, React Router 6 |
 | Server State | TanStack React Query 4 |
 | Forms | React Hook Form |
 | Database/Auth/Storage | Supabase JavaScript client |
@@ -18,8 +18,8 @@ This project must demonstrate modern React/TypeScript frontend engineering, reli
 | Charts and dates | Recharts, date-fns |
 | Error handling | react-error-boundary |
 | Build/deployment config | Vite 4, Vercel SPA rewrites |
-| Testing | Not yet installed; ROADMAP Phase 1 will add Vitest + React Testing Library |
-| CI | Not yet configured; ROADMAP Phase 1 will add GitHub Actions |
+| Testing | Vitest + React Testing Library |
+| CI | GitHub Actions runs the quality workflow |
 
 ## Architecture Rules
 
@@ -28,7 +28,7 @@ This project must demonstrate modern React/TypeScript frontend engineering, reli
 - All server reads and writes must go through feature hooks and `services/`. Maintain stable, explainable query keys; after a successful mutation, invalidate only affected query keys rather than refreshing every query by default.
 - Every asynchronous route and feature must explicitly handle loading, error, and empty states. The global ErrorBoundary handles render errors only and cannot replace query error UI.
 - Form validation must consider HTML constraints, client feedback, and database policy. Client validation improves user experience; it is not a security boundary.
-- The TypeScript migration begins in ROADMAP Phase 2. It must be incremental but end in a predominantly TypeScript application: migrate service/domain contracts and hooks first, then the forms/components that use them. Do not rewrite the entire application merely to change file extensions to `.tsx`, and do not require unrelated hotfixes to migrate whole files.
+- The active production graph is TypeScript/TSX following the completed incremental migration. Keep new production code typed, use generated database contracts at the data boundary, and do not convert historical/tutorial files without a separately justified reason.
 - After a Supabase baseline has been verified, use Supabase-generated `Database` types as the source of truth for table `Row`, `Insert`, and `Update` contracts, and type the Supabase client accordingly. Add supplementary types only for non-database domain/UI transformations; do not hand-copy the full schema.
 - Route parameters, URL search parameters, file input, and third-party payloads are runtime input. Add runtime validation only at genuinely untrusted boundaries; do not add Zod/schemas to every Supabase response by default. A new validation dependency requires a concrete runtime use case.
 
@@ -45,12 +45,11 @@ This project must demonstrate modern React/TypeScript frontend engineering, reli
 
 ## Testing Rules
 
-- Before ROADMAP Phase 1, do not imply that `npm test` exists or report tests that were not run.
 - Prefer behavioural tests for pure business logic, data-access failure behaviour, form validation, and critical workflows (login/protected route, cabin create/edit, booking delete, check-in/out, and settings update), rather than component internals.
 - Mock the data-access boundary in UI/feature tests only where necessary. Do not mock TanStack Query, React Hook Form, or internal component implementation without a concrete reason.
 - Test service failure/rollback behaviour directly with controlled Supabase/Storage mocks. Do not allow local/unit tests to write shared Supabase data.
-- Vitest + React Testing Library and GitHub Actions are required outcomes. Playwright is an optional stretch goal only if an isolated, repeatably seeded Supabase environment can be established with reasonable complexity.
-- CI must start with `npm ci` and run the lint, tests, and build commands that exist at that stage. Add `typecheck` to CI only after Phase 2 actually introduces it.
+- Vitest + React Testing Library and GitHub Actions are established. Playwright remains an optional stretch goal only if an isolated, repeatably seeded Supabase environment can be established with reasonable complexity.
+- CI starts with `npm ci` and runs lint, typecheck, tests, and the production build on pull requests to `main` and pushes to `main`.
 - Do not pursue meaningless 100% coverage. When critical business behaviour is added or fixed, add tests that can catch its regression.
 - For every milestone, run the lint, typecheck, test, and build commands that actually exist, and report why any required check could not be run.
 
@@ -86,14 +85,14 @@ Private, uncommitted local notes may use any language.
 Commands currently available:
 
 ```bash
-npm install
+npm ci
 npm run dev
-npm run build
 npm run lint
+npm run typecheck
+npm test
+npm run build
 npm run preview
 ```
-
-`npm test`, `npm run typecheck`, and E2E commands do not yet exist. They may be added to this section and used in CI only after the corresponding ROADMAP milestone introduces their scripts.
 
 ## GitHub Delivery Workflow
 
@@ -170,7 +169,7 @@ GitHub's externally configured `Protect main` ruleset is Active and targets the 
 
 - The ruleset has no bypasses and enforces Pull Request delivery, resolved review conversations before merge, Squash-only merges, deletion protection, and force-push protection.
 - Required approvals are currently 0 because this is a solo-maintained repository.
-- Status checks, signed commits, deployments, Code Owner/team/latest-push approvals, code scanning/quality/coverage requirements, and automatic Copilot review are not currently required. Status checks must be reconsidered only after Phase 1 CI exists and has stable check names.
+- Status checks, signed commits, deployments, Code Owner/team/latest-push approvals, code scanning/quality/coverage requirements, and automatic Copilot review are not currently required. The established CI workflow should be reconsidered for required-status-check protection when its check names and maintenance expectations are stable.
 - The GitHub ruleset is separate from Native Codex review and does not require it. Native Codex review is optional and on-demand; required GitHub review conversations must still be resolved before merge, and the human retains final merge authority.
 
 ## Code Review Rules
