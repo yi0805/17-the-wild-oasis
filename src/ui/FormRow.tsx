@@ -1,4 +1,6 @@
 import styled from "styled-components";
+import { isValidElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 
 const StyledFormRow = styled.div`
   display: grid;
@@ -36,10 +38,29 @@ const Error = styled.span`
   color: var(--color-red-700);
 `;
 
-function FormRow({ label, error, children }) {
+type FormControlChild = ReactElement<{ id?: string }>;
+type FormRowProps = {
+  label?: ReactNode;
+  error?: ReactNode;
+  children: ReactNode;
+};
+
+function getControlId(children: ReactNode) {
+  if (
+    isValidElement<FormControlChild["props"]>(children) &&
+    typeof children.props.id === "string"
+  ) {
+    return children.props.id;
+  }
+  return undefined;
+}
+
+function FormRow({ label, error, children }: FormRowProps) {
+  const controlId = getControlId(children);
+
   return (
     <StyledFormRow>
-      {label && <Label htmlFor={children?.props?.id}>{label}</Label>}
+      {label && <Label htmlFor={controlId}>{label}</Label>}
       {children}
       {error && <Error>{error}</Error>}
     </StyledFormRow>

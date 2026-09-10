@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import type { FallbackProps } from "react-error-boundary";
 
 import Heading from "./Heading";
 import GlobalStyle from "../styles/GlobalStyle";
@@ -34,14 +35,16 @@ const Box = styled.div`
   }
 `;
 
-function ErrorFallback({ error, resetErrorBoundary }) {
+function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+
   return (
     <>
       <GlobalStyle />
       <StyledErrorFallback>
         <Box>
           <Heading as="h1">Something went wrong 😢</Heading>
-          <p>{error.message}</p>
+          <p>{errorMessage}</p>
           <Button size="large" onClick={resetErrorBoundary}>
             Try again
           </Button>

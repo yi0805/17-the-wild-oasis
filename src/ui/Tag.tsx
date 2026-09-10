@@ -1,6 +1,8 @@
 import styled from "styled-components";
 
-const Tag = styled.span`
+type TagType = "blue" | "green" | "yellow" | "silver" | "indigo";
+
+const Tag = styled.span<{ type: TagType }>`
   width: fit-content;
   text-transform: uppercase;
   font-size: 1.1rem;

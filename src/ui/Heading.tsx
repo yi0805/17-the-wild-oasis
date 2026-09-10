@@ -1,6 +1,8 @@
 import styled, { css } from "styled-components";
 
-const Heading = styled.h1`
+type HeadingLevel = "h1" | "h2" | "h3" | "h4";
+
+const Heading = styled.h1<{ as?: HeadingLevel }>`
   ${(props) =>
     props.as === "h1" &&
     css`
