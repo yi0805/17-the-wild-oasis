@@ -1,6 +1,6 @@
-import styled from "styled-components";
+import { type ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import styled from "styled-components";
 
 import { useUser } from "../features/authentication/useUser";
 import Spinner from "./Spinner";
@@ -13,7 +13,11 @@ const FullPage = styled.div`
   background-color: var(--color-grey-50);
 `;
 
-function ProtectedRoute({ children }) {
+type ProtectedRouteProps = {
+  children: ReactNode;
+};
+
+function ProtectedRoute({ children }: ProtectedRouteProps) {
   const navigate = useNavigate();
   const { isLoading, isAuthenticated, isFetching } = useUser();
 
@@ -28,13 +32,15 @@ function ProtectedRoute({ children }) {
 
   if (isLoading) {
     return (
-      <FullPage>
+      <FullPage role="status" aria-label="Loading user">
         <Spinner />
       </FullPage>
     );
   }
 
   if (isAuthenticated) return children;
+
+  return null;
 }
 
 export default ProtectedRoute;
