@@ -141,3 +141,21 @@ Both buckets remain public with `file_size_limit = NULL` and `allowed_mime_types
 - An avatar upload under an incorrect user-ID filename was rejected with HTTP 400, `data: null`, and `new row violates row-level security policy`; the Account page’s application-generated avatar filename uploaded and rendered successfully.
 
 No credentials, test email addresses, user IDs, or user identities are recorded in this document.
+
+## Later verified changes
+
+The Phase 0.5 sections above remain the historical verified baseline and first security-hardening record. This section records a later, narrower hosted change. It supersedes only the current avatar Storage-policy state described below; Task 025 did not re-audit the entire Supabase environment.
+
+### Task 025 — Avatar lifecycle security boundary
+
+The human manually applied `supabase/migrations/20260910000000_avatar_lifecycle_cleanup.sql` through Supabase SQL Editor. The current verified avatar policies on `storage.objects` are:
+
+- `phase_0_5_avatars_insert`: authenticated, self-scoped INSERT into the `avatars` bucket using the existing `avatar-{auth.uid()}-...` filename ownership scheme.
+- `phase_2_5_avatars_select_own`: authenticated, same-user SELECT limited to the `avatars` bucket and the current user's generated-avatar filename pattern.
+- `phase_2_5_avatars_delete_own`: authenticated, same-user DELETE with the same bucket and filename ownership boundary as SELECT.
+
+No avatar UPDATE policy or anonymous avatar mutation policy was observed. Bucket visibility was not changed: the `avatars` bucket remains public-delivery, and MIME-type and file-size restrictions remain deferred.
+
+Human hosted verification confirmed successful avatar replacement and deletion of the previous application-owned avatar after the Auth update succeeded. It also confirmed that a different authenticated user identity could not see the target object, and that `anon` could not see it. No real user identity, credential, token, or object name is recorded here.
+
+This later migration was not deployed through Supabase CLI. Hosted CLI migration history remains unreconciled, so `supabase db push` must not be treated as verified or safe.
