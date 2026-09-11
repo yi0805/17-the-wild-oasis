@@ -2,6 +2,7 @@ import supabase, { supabaseUrl } from "./supabase";
 import type { Tables, TablesInsert, TablesUpdate } from "../types/database.types";
 import { buildCabinImageObjectName } from "../utils/cabinImage";
 import { validateImageFile } from "../utils/imageUpload";
+import { cleanupReplacedCabinImage } from "./apiCabinImageCleanup";
 
 type Cabin = Tables<"cabins">;
 type CabinInsert = TablesInsert<"cabins">;
@@ -35,6 +36,22 @@ export async function createEditCabin(
     if (validationError) throw new Error(validationError);
   }
 
+  let previousImage: string | null = null;
+  if (id !== undefined && typeof newCabin.image !== "string") {
+    const { data, error } = await getSupabaseClient()
+      .from("cabins")
+      .select("image")
+      .eq("id", id)
+      .single();
+
+    if (error || !data) {
+      console.error(error ?? "Cabin image is unavailable");
+      throw new Error("Cabin image could not be prepared for replacement");
+    }
+
+    previousImage = data.image;
+  }
+
   const existingImagePath =
     typeof newCabin.image === "string" ? newCabin.image : null;
   const imageName =
@@ -60,7 +77,7 @@ export async function createEditCabin(
   const cabinData = { ...newCabin, image: imagePath };
 
   // A) CREATE
-  const result = !id
+  const result = id === undefined
     ? await client.from("cabins").insert([cabinData]).select().single()
     : await client
         .from("cabins")
@@ -82,6 +99,10 @@ export async function createEditCabin(
 
     console.error(error);
     throw new Error("Cabin could not be saved");
+  }
+
+  if (id !== undefined && imageName && previousImage) {
+    await cleanupReplacedCabinImage(previousImage);
   }
 
   return data;
