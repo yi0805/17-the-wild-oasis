@@ -126,7 +126,7 @@ function CabinRow({ cabin }: CabinRowProps) {
       <div>
         <Modal>
           <Menus.Menu>
-            <Menus.Toggle id={cabinID} />
+            <Menus.Toggle ariaLabel="Cabin actions" id={cabinID} />
 
             <Menus.List id={cabinID}>
               {canDuplicate && (

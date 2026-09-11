@@ -128,7 +128,7 @@ describe("BookingTable", () => {
 
     await screen.findByText("Forest Cabin");
     await user.click(screen.getByRole("button"));
-    await user.click(screen.getByRole("button", { name: "Delete booking" }));
+    await user.click(screen.getByRole("menuitem", { name: "Delete booking" }));
 
     expect(
       screen.getByRole("heading", { name: "Delete booking" }),
