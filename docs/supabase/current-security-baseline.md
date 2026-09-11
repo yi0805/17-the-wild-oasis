@@ -164,8 +164,15 @@ Human hosted verification confirmed successful avatar replacement and deletion o
 
 This later migration was not deployed through Supabase CLI. Hosted CLI migration history remains unreconciled, so `supabase db push` must not be treated as verified or safe.
 
-### Task 042 — Prepared image-upload bucket restrictions
+### Task 042 — Verified image-upload bucket restrictions
 
 Task 042 adds shared browser and service validation for only `image/jpeg`, `image/png`, and `image/webp`, with a 5,242,880-byte maximum. Its forward-only source-of-truth migration is `supabase/migrations/20260911000000_image_upload_limits.sql`; it asserts that the existing `avatars` and `cabin-images` buckets exist, then updates only their `file_size_limit` and `allowed_mime_types` values.
 
-**MANUAL HOSTED APPLY REQUIRED AFTER REVIEW/MERGE.** The migration has not been applied or verified against hosted Supabase. It does not change bucket visibility or any `storage.objects` RLS policy, and it must be run through the Supabase SQL Editor rather than `supabase db push` until hosted migration history is reconciled.
+The migration was manually applied through Supabase SQL Editor. Human SQL verification confirmed the following hosted values for both existing buckets:
+
+| Bucket | Public | File-size limit | Allowed MIME types |
+| --- | --- | --- | --- |
+| `avatars` | `true` | `5242880` | `image/jpeg`, `image/png`, `image/webp` |
+| `cabin-images` | `true` | `5242880` | `image/jpeg`, `image/png`, `image/webp` |
+
+The migration did not change bucket visibility or any `storage.objects` RLS policy. Hosted CLI migration history remains unreconciled, so future migrations must continue to be applied through the reviewed SQL Editor process rather than `supabase db push`.

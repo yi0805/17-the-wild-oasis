@@ -1,5 +1,6 @@
 import supabase, { supabaseUrl } from "./supabase";
 import type { Tables, TablesInsert, TablesUpdate } from "../types/database.types";
+import { buildCabinImageObjectName } from "../utils/cabinImage";
 import { validateImageFile } from "../utils/imageUpload";
 
 type Cabin = Tables<"cabins">;
@@ -35,19 +36,16 @@ export async function createEditCabin(
   }
 
   const existingImagePath =
-    typeof newCabin.image === "string" && newCabin.image.startsWith(supabaseUrl)
-      ? newCabin.image
-      : null;
-  const hasImagePath = Boolean(existingImagePath);
-
-  const imageName = `${Math.random()}-${
-    typeof newCabin.image === "string" ? undefined : newCabin.image.name
-  }`.replace(/\//g, "");
+    typeof newCabin.image === "string" ? newCabin.image : null;
+  const imageName =
+    typeof newCabin.image === "string"
+      ? null
+      : buildCabinImageObjectName(crypto.randomUUID(), newCabin.image.type);
   const imagePath =
     existingImagePath ??
     `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
 
-  if (!hasImagePath) {
+  if (imageName) {
     const { error: storageError } = await getSupabaseClient().storage
       .from("cabin-images")
       .upload(imageName, newCabin.image);
@@ -74,7 +72,7 @@ export async function createEditCabin(
   const { data, error } = result;
 
   if (error) {
-    if (!hasImagePath) {
+    if (imageName) {
       const { error: cleanupError } = await client.storage
         .from("cabin-images")
         .remove([imageName]);
