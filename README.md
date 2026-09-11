@@ -29,6 +29,7 @@ Public sign-up is disabled. Authenticated operations access requires an account 
 - Supabase Auth, PostgreSQL RLS/grants, and Storage policies form the authorization boundary for a simple trusted-operator model.
 - Storage-backed cabin and avatar mutations use explicit ordering and best-effort compensation for failed follow-up writes.
 - Vitest and React Testing Library cover behavioural workflows and service-level mutation failures; GitHub Actions runs lint, typecheck, tests, and the production build.
+- Important query boundaries render explicit loading, failure, and appropriate empty states; key modal/menu workflows have keyboard and focus handling, with targeted responsive layouts for forms, Dashboard, and booking/check-in workflows.
 - Measured route-level code splitting reduced the initial production entry bundle from 284.19 kB gzip to 138.82 kB gzip on the same local build environment.
 - The active deployment is hosted on Vercel.
 
@@ -78,7 +79,7 @@ The verified table boundary grants authenticated users only the application oper
 
 ## Testing and CI
 
-The current suite contains **34 test files and 169 tests**. It uses Vitest, React Testing Library, and focused local Supabase/Storage mocks—tests target observable workflows and service failure behaviour rather than component implementation details.
+The current suite contains **34 test files and 183 tests**. It uses Vitest, React Testing Library, and focused local Supabase/Storage mocks—tests target observable workflows and service failure behaviour rather than component implementation details.
 
 The [GitHub Actions workflow](.github/workflows/ci.yml) runs `npm ci`, lint, typecheck, tests, and the production build on pull requests to `main` and pushes to `main`.
 
@@ -86,7 +87,7 @@ The [GitHub Actions workflow](.github/workflows/ci.yml) runs `npm ci`, lint, typ
 
 The original application provided the hotel-dashboard product baseline as part of a course/tutorial. This repository does not present that baseline product functionality as independently invented from scratch.
 
-The portfolio work independently improved its engineering quality through configuration and credential hygiene; mutation-failure handling; Supabase Auth/RLS/Storage review and hardening; browser-sign-up removal; behavioural regression tests; GitHub Actions CI; generated Supabase TypeScript contracts; an incremental TypeScript migration; avatar lifecycle safety; and supporting engineering documentation. The [roadmap](ROADMAP.md) and [task handoffs](docs/handoff/) record the scope and verification for those changes.
+The portfolio work independently improved its engineering quality through configuration and credential hygiene; mutation-failure handling; Supabase Auth/RLS/Storage review and hardening; browser-sign-up removal; behavioural regression tests; GitHub Actions CI; generated Supabase TypeScript contracts; an incremental TypeScript migration; explicit production query-state handling; targeted modal/menu accessibility and responsive workflows; avatar lifecycle safety; and supporting engineering documentation. The [roadmap](ROADMAP.md) and [task handoffs](docs/handoff/) record the scope and verification for those changes.
 
 ## Local setup
 
@@ -132,5 +133,5 @@ Vercel is the verified active deployment platform. The production URL is [https:
 - Cabin-image cleanup applies only to canonical, currently unreferenced replacement objects; historical/legacy images and cabin-delete cleanup remain out of scope, and retries run only during bounded Cabins-page lifecycle passes rather than guaranteed background processing.
 - Two moderate React Router v6 advisories remain; the available remediation is an intentionally deferred breaking v7 upgrade.
 - Route-level splitting removes the prior large initial-entry warning, but no bundle budget or further dependency-level performance analysis has been established.
-- Broader responsive and accessibility hardening remains Phase 4 work.
+- Responsive and accessibility hardening is targeted to important workflows; it is not a full WCAG or cross-device certification.
 - Supabase security migrations were manually applied through the SQL Editor. Hosted Supabase CLI migration history is not reconciled, so `supabase db push` should not be assumed safe.
