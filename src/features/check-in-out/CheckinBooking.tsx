@@ -8,6 +8,7 @@ import ButtonGroup from "../../ui/ButtonGroup";
 import Button from "../../ui/Button";
 import ButtonText from "../../ui/ButtonText";
 import Empty from "../../ui/Empty";
+import QueryError from "../../ui/QueryError";
 import { useBooking } from "../bookings/useBooking";
 import { useMoveBack } from "../../hooks/useMoveBack";
 import Spinner from "../../ui/Spinner";
@@ -90,9 +91,17 @@ function CheckinBooking() {
   const [confirmPaid, setConfirmPaid] = useState(false);
   const [addBreakfast, setAddBreakfast] = useState(false);
 
-  const { booking, isLoading } = useBooking();
+  const {
+    booking,
+    isLoading,
+    error: bookingError,
+  } = useBooking();
   const { checkin, isCheckingIn } = useChecking();
-  const { settings, isLoading: isLoadingSettings } = useSettings();
+  const {
+    settings,
+    isLoading: isLoadingSettings,
+    error: settingsError,
+  } = useSettings();
 
   useEffect(
     function () {
@@ -104,7 +113,15 @@ function CheckinBooking() {
   const moveBack = useMoveBack();
 
   if (isLoading || isLoadingSettings) {
-    return <Spinner />;
+    return <Spinner role="status" aria-label="Loading check-in data" />;
+  }
+
+  if (bookingError) {
+    return <QueryError resourceName="Booking" />;
+  }
+
+  if (settingsError) {
+    return <QueryError resourceName="Settings" />;
   }
 
   if (!booking) {

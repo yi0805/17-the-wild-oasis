@@ -4,6 +4,7 @@ import Form from "../../ui/Form";
 import FormRow from "../../ui/FormRow";
 import Input from "../../ui/Input";
 import Spinner from "../../ui/Spinner";
+import QueryError from "../../ui/QueryError";
 import { getSettings, updateSetting } from "../../services/apiSettings";
 import { useSettings } from "./useSettings";
 import { useUpdateSetting } from "./useUpdateSetting";
@@ -25,10 +26,16 @@ type SettingsInputValues = Record<
 >;
 
 function UpdateSettingsForm() {
-  const { isLoading, settings } = useSettings();
+  const { isLoading, error, settings } = useSettings();
   const { isUpdating, updateSetting } = useUpdateSetting();
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) {
+    return <Spinner role="status" aria-label="Loading settings" />;
+  }
+
+  if (error) {
+    return <QueryError resourceName="Settings" />;
+  }
 
   function handleUpdate(
     event: FocusEvent<HTMLInputElement>,

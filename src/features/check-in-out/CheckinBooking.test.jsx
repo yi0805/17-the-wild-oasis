@@ -51,10 +51,16 @@ function createBooking(overrides = {}) {
 function renderCheckin({
   booking = createBooking(),
   settings = { breakfastPrice: 15 },
+  bookingError = null,
+  settingsError = null,
   includeToaster = false,
 } = {}) {
-  getBooking.mockResolvedValue(booking);
-  getSettings.mockResolvedValue(settings);
+  if (bookingError) getBooking.mockRejectedValue(bookingError);
+  else getBooking.mockResolvedValue(booking);
+
+  if (settingsError) getSettings.mockRejectedValue(settingsError);
+  else getSettings.mockResolvedValue(settings);
+
   updateBooking.mockResolvedValue({ id: booking?.id ?? 42 });
 
   return renderWithProviders(
@@ -221,6 +227,29 @@ describe("CheckinBooking", () => {
       await screen.findByText("There was an error while checking in"),
     ).toBeInTheDocument();
     expect(screen.queryByText("Check-in complete")).not.toBeInTheDocument();
+  });
+
+  it("renders a booking query failure before the booking empty state", async () => {
+    renderCheckin({
+      booking: null,
+      bookingError: new Error("Booking query failed"),
+    });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Booking could not be loaded. Please try again.",
+    );
+    expect(screen.queryByText("No booking could be found.")).not.toBeInTheDocument();
+  });
+
+  it("renders a settings query failure instead of interactive check-in controls", async () => {
+    renderCheckin({ settingsError: new Error("Settings query failed") });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Settings could not be loaded. Please try again.",
+    );
+    expect(
+      screen.queryByRole("checkbox", { name: /I confirm that/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the existing empty state when no booking is available", async () => {

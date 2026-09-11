@@ -19,6 +19,7 @@ import Modal from "../../ui/Modal";
 import ConfirmDelete from "../../ui/ConfirmDelete";
 import { useDeleteBooking } from "./useDeleteBooking";
 import Empty from "../../ui/Empty";
+import QueryError from "../../ui/QueryError";
 
 const statusToTagName = {
   unconfirmed: "blue",
@@ -50,14 +51,18 @@ const StatusFallback = styled.span`
 `;
 
 function BookingDetail() {
-  const { booking, isLoading } = useBooking();
+  const { booking, isLoading, error } = useBooking();
   const moveBack = useMoveBack();
   const navigate = useNavigate();
   const { checkout, isCheckingOut } = useCheckout();
   const { deleteBooking, isDeleting } = useDeleteBooking();
 
   if (isLoading) {
-    return <Spinner />;
+    return <Spinner role="status" aria-label="Loading booking" />;
+  }
+
+  if (error) {
+    return <QueryError resourceName="Booking" />;
   }
 
   if (!booking) {

@@ -53,6 +53,20 @@ describe("UpdateSettingsForm", () => {
     expect(screen.getByLabelText("Breakfast price")).toHaveValue(15);
   });
 
+  it("renders a query failure instead of editable settings inputs", async () => {
+    getSettings.mockRejectedValue(new Error("Settings query failed"));
+    updateSetting.mockResolvedValue(createSettings());
+
+    renderWithProviders(<UpdateSettingsForm />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Settings could not be loaded. Please try again.",
+    );
+    expect(
+      screen.queryByLabelText("Minimum nights/booking"),
+    ).not.toBeInTheDocument();
+  });
+
   it("uses a neutral fallback for nullable settings values", async () => {
     renderSettingsForm(createSettings({ breakfastPrice: null }));
 
