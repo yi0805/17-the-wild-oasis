@@ -53,6 +53,44 @@ describe("Booking detail display boundary", () => {
     vi.restoreAllMocks();
   });
 
+  it("keeps loading ahead of a stale query error", () => {
+    useBooking.mockReturnValue({
+      booking: undefined,
+      isLoading: true,
+      error: new Error("Previous query failed"),
+    });
+
+    renderWithProviders(<BookingDetail />, { initialEntries: ["/"] });
+
+    expect(screen.getByRole("status", { name: "Loading booking" })).toBeVisible();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByText("No booking could be found.")).not.toBeInTheDocument();
+  });
+
+  it("renders a query failure instead of the booking empty state", () => {
+    useBooking.mockReturnValue({
+      booking: undefined,
+      isLoading: false,
+      error: new Error("Booking failed"),
+    });
+
+    renderWithProviders(<BookingDetail />, { initialEntries: ["/"] });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Booking could not be loaded. Please try again.",
+    );
+    expect(screen.queryByText("No booking could be found.")).not.toBeInTheDocument();
+  });
+
+  it("preserves the legitimate empty state when no booking is available", () => {
+    useBooking.mockReturnValue({ booking: null, isLoading: false, error: null });
+
+    renderWithProviders(<BookingDetail />, { initialEntries: ["/"] });
+
+    expect(screen.getByText("No booking could be found.")).toBeVisible();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("renders complete booking, guest, status, and price information", () => {
     const booking = createBooking();
     useBooking.mockReturnValue({ booking, isLoading: false });
