@@ -165,7 +165,7 @@ function BookingRow({ booking }: BookingRowProps) {
             </Modal.Open>
           </Menus.List>
         </Menus.Menu>
-        <Modal.Window name="delete">
+        <Modal.Window ariaLabel="Delete booking confirmation" name="delete">
           <DeleteConfirmation
             resourceName="booking"
             onConfirm={() => deleteBooking(bookingId)}

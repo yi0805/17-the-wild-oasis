@@ -149,11 +149,11 @@ function CabinRow({ cabin }: CabinRowProps) {
             </Menus.List>
           </Menus.Menu>
 
-          <Modal.Window name="edit">
+          <Modal.Window ariaLabel="Edit cabin" name="edit">
             <CreateCabinForm cabinToEdit={cabin} />
           </Modal.Window>
 
-          <Modal.Window name="delete">
+          <Modal.Window ariaLabel="Delete cabin confirmation" name="delete">
             <DeleteConfirmation
               resourceName="cabins"
               disabled={isDeleting}

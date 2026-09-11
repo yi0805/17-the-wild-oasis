@@ -1,5 +1,18 @@
-import { cloneElement, createContext, useContext, useState } from "react";
-import type { MouseEventHandler, ReactElement, ReactNode } from "react";
+import {
+  cloneElement,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import type {
+  KeyboardEvent,
+  MouseEventHandler,
+  ReactElement,
+  ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { HiXMark } from "react-icons/hi2";
 import styled from "styled-components";
@@ -59,7 +72,7 @@ const Button = styled.button`
 
 type ModalContextValue = {
   close: () => void;
-  open: (name: string) => void;
+  open: (name: string, opener: HTMLElement | null) => void;
   openName: string;
 };
 type ModalProps = { children: ReactNode };
@@ -68,6 +81,7 @@ type ModalOpenProps = {
   opens: string;
 };
 type ModalWindowProps = {
+  ariaLabel: string;
   children: ReactElement<{ onCloseModal?: () => void }>;
   name: string;
 };
@@ -77,6 +91,15 @@ type ModalCompound = ((props: ModalProps) => JSX.Element) & {
 };
 
 const ModalContext = createContext<ModalContextValue | undefined>(undefined);
+
+const focusableSelector = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
 
 function useModalContext() {
   const context = useContext(ModalContext);
@@ -88,9 +111,25 @@ function useModalContext() {
 
 const Modal: ModalCompound = ({ children }) => {
   const [openName, setOpenName] = useState("");
+  const openerRef = useRef<HTMLElement | null>(null);
+  const previousOpenNameRef = useRef("");
 
-  const close = () => setOpenName("");
-  const open = (name: string) => setOpenName(name);
+  const close = useCallback(() => setOpenName(""), []);
+  const open = useCallback((name: string, opener: HTMLElement | null) => {
+    openerRef.current = opener;
+    setOpenName(name);
+  }, []);
+
+  useEffect(() => {
+    if (previousOpenNameRef.current && !openName) {
+      const opener = openerRef.current;
+      if (opener?.isConnected && !opener.matches(":disabled")) {
+        opener.focus();
+      }
+    }
+
+    previousOpenNameRef.current = openName;
+  }, [openName]);
 
   return (
     <ModalContext.Provider value={{ close, open, openName }}>
@@ -102,19 +141,93 @@ const Modal: ModalCompound = ({ children }) => {
 function Open({ children, opens: opensWindowName }: ModalOpenProps) {
   const { open } = useModalContext();
 
-  return cloneElement(children, { onClick: () => open(opensWindowName) });
+  const handleOpen: MouseEventHandler<HTMLElement> = (event) => {
+    const opener =
+      event?.currentTarget instanceof HTMLElement
+        ? event.currentTarget
+        : document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+
+    open(opensWindowName, opener);
+  };
+
+  return cloneElement(children, { onClick: handleOpen });
 }
 
-function Window({ children, name }: ModalWindowProps) {
+function Window({ ariaLabel, children, name }: ModalWindowProps) {
   const { openName, close } = useModalContext();
-  const ref = useOutsideClick<HTMLDivElement>(close);
+  const isOpen = name === openName;
+  const ref = useOutsideClick<HTMLDivElement>(close, true, isOpen);
 
-  if (name !== openName) return null;
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handleEscape(event: globalThis.KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [close, isOpen]);
+
+  useEffect(() => {
+    if (isOpen) ref.current?.focus();
+  }, [isOpen, ref]);
+
+  function handleTab(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Tab" || !ref.current) return;
+
+    const focusableElements = Array.from(
+      ref.current.querySelectorAll<HTMLElement>(focusableSelector),
+    ).filter(
+      (element) =>
+        element.getAttribute("aria-hidden") !== "true" && element.tabIndex >= 0,
+    );
+
+    if (!focusableElements.length) {
+      event.preventDefault();
+      ref.current.focus();
+      return;
+    }
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    const activeElement = document.activeElement;
+
+    if (
+      event.shiftKey &&
+      (activeElement === firstElement || activeElement === ref.current)
+    ) {
+      event.preventDefault();
+      lastElement.focus();
+    }
+
+    if (
+      !event.shiftKey &&
+      (activeElement === lastElement || activeElement === ref.current)
+    ) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  }
+
+  if (!isOpen) return null;
 
   return createPortal(
     <Overlay>
-      <StyledModal ref={ref}>
-        <Button onClick={close}>
+      <StyledModal
+        aria-label={ariaLabel}
+        aria-modal="true"
+        onKeyDown={handleTab}
+        ref={ref}
+        role="dialog"
+        tabIndex={-1}
+      >
+        <Button aria-label="Close dialog" onClick={close}>
           <HiXMark />
         </Button>
         <div>{cloneElement(children, { onCloseModal: close })}</div>

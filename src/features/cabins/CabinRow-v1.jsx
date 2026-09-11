@@ -95,7 +95,7 @@ function CabinRow({ cabin }) {
               <HiPencil />
             </button>
           </Modal.Open>
-          <Modal.Window name="edit">
+          <Modal.Window ariaLabel="Edit cabin" name="edit">
             <CreateCabinForm cabinToEdit={cabin} />
           </Modal.Window>
 
@@ -104,7 +104,7 @@ function CabinRow({ cabin }) {
               <HiTrash />
             </button>
           </Modal.Open>
-          <Modal.Window name="delete">
+          <Modal.Window ariaLabel="Delete cabin confirmation" name="delete">
             <ConfirmDelete
               resourceName="cabins"
               disabled={isDeleting}

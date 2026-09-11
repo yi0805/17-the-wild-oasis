@@ -3,11 +3,14 @@ import { useEffect, useRef } from "react";
 export default function useOutsideClick<T extends HTMLElement>(
   handler: () => void,
   listenCapture = true,
+  enabled = true,
 ) {
   const ref = useRef<T | null>(null);
 
   useEffect(
     function () {
+      if (!enabled) return;
+
       function handleClick(event: MouseEvent) {
         if (
           ref.current &&
@@ -23,7 +26,7 @@ export default function useOutsideClick<T extends HTMLElement>(
       return () =>
         document.removeEventListener("click", handleClick, listenCapture);
     },
-    [handler, listenCapture],
+    [enabled, handler, listenCapture],
   );
 
   return ref;
