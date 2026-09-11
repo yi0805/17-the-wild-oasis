@@ -107,7 +107,7 @@ function BookingDetail() {
             <ActionButton variation="danger">Delete booking</ActionButton>
           </Modal.Open>
 
-          <Modal.Window name="delete">
+          <Modal.Window ariaLabel="Delete booking confirmation" name="delete">
             <DeleteConfirmation
               resourceName="booking"
               onConfirm={() =>
