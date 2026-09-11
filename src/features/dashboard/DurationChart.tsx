@@ -1,13 +1,5 @@
 import styled from "styled-components";
-import {
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
-import type { ComponentProps } from "react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import Heading from "../../ui/Heading";
 import { useDarkMode } from "../../context/DarkModeContext";
@@ -30,6 +22,7 @@ type DurationDataPoint = {
 };
 
 const ChartBox = styled.div`
+  min-width: 0;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-lg);
@@ -46,10 +39,6 @@ const ChartBox = styled.div`
     font-weight: 600;
   }
 
-  & .recharts-legend-item-text {
-    color: var(--color-grey-600) !important;
-  }
-
   & .recharts-default-tooltip {
     border: 1px solid var(--color-border-subtle) !important;
     border-radius: var(--border-radius-md);
@@ -60,6 +49,70 @@ const ChartBox = styled.div`
   @media (max-width: 1150px) {
     grid-column: 1 / -1;
   }
+
+  @media (max-width: 700px) {
+    padding: 2rem;
+  }
+`;
+
+const ChartContent = styled.div`
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2rem;
+  align-items: center;
+
+  @media (max-width: 700px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.2rem;
+  }
+`;
+
+const ChartCanvas = styled.div`
+  min-width: 0;
+  height: 24rem;
+
+  @media (max-width: 700px) {
+    height: 22rem;
+  }
+`;
+
+const LegendList = styled.ul`
+  min-width: 12rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.8rem;
+  color: var(--color-grey-600);
+
+  @media (max-width: 700px) {
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1.2rem;
+  }
+`;
+
+const LegendItem = styled.li`
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.3rem;
+  font-weight: 500;
+
+  & span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+`;
+
+const LegendDot = styled.span<{ $color: string }>`
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background-color: ${(props) => props.$color};
 `;
 
 const startDataLight: DurationDataPoint[] = [
@@ -187,46 +240,50 @@ function DurationChart({ confirmedStays }: DurationChartProps) {
   const { isDarkMode } = useDarkMode();
   const startDate = isDarkMode ? startDataDark : startDataLight;
   const data = prepareData(startDate, confirmedStays);
-  // Recharts accepts percentage widths at runtime, but its bundled Legend prop
-  // type only permits numbers.
-  const legendWidth = "30%" as unknown as ComponentProps<typeof Legend>["width"];
 
   return (
     <ChartBox>
       <Heading as="h2">Stay duration summary</Heading>
 
-      <ResponsiveContainer height={240} width="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            nameKey="duration"
-            valueKey="value"
-            innerRadius={85}
-            outerRadius={110}
-            cx="40%"
-            cy="50%"
-            paddingAngle={3}
-            dataKey="value"
-          >
-            {data.map((entry) => (
-              <Cell
-                fill={entry.color}
-                stroke={entry.color}
-                key={entry.duration}
-              />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend
-            verticalAlign="middle"
-            align="right"
-            width={legendWidth}
-            layout="vertical"
-            iconSize={15}
-            iconType="circle"
-          />
-        </PieChart>
-      </ResponsiveContainer>
+      <ChartContent>
+        <ChartCanvas>
+          <ResponsiveContainer height="100%" width="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                nameKey="duration"
+                valueKey="value"
+                innerRadius="58%"
+                outerRadius="84%"
+                cx="50%"
+                cy="50%"
+                paddingAngle={3}
+                dataKey="value"
+              >
+                {data.map((entry) => (
+                  <Cell
+                    fill={entry.color}
+                    stroke={entry.color}
+                    key={entry.duration}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartCanvas>
+
+        <LegendList aria-label="Stay duration legend">
+          {data.map((entry) => (
+            <LegendItem key={entry.duration}>
+              <LegendDot $color={entry.color} aria-hidden="true" />
+              <span>
+                {entry.duration}: {entry.value}
+              </span>
+            </LegendItem>
+          ))}
+        </LegendList>
+      </ChartContent>
     </ChartBox>
   );
 }
