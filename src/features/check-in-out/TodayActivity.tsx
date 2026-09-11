@@ -8,6 +8,7 @@ import QueryError from "../../ui/QueryError";
 import TodayItem from "./TodayItem";
 
 const StyledToday = styled.div`
+  min-width: 0;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-lg);
@@ -17,8 +18,15 @@ const StyledToday = styled.div`
   flex-direction: column;
   gap: 2rem;
   grid-column: 1 / span 2;
+
+  @media (max-width: 700px) {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    gap: 1.6rem;
+  }
 `;
 const TodayList = styled.ul`
+  min-width: 0;
   overflow: auto;
   overflow-x: hidden;
   padding-right: 0.4rem;
