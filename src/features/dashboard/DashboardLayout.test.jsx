@@ -11,7 +11,7 @@ vi.mock("./useRecentBookings", () => ({ useRecentBookings }));
 vi.mock("./useRecentStays", () => ({ useRecentStays }));
 vi.mock("../cabins/useCabins", () => ({ useCabins }));
 vi.mock("../../ui/Spinner", () => ({
-  default: () => <div>Loading dashboard</div>,
+  default: (props) => <div {...props}>Loading dashboard</div>,
 }));
 vi.mock("./Stats", () => ({
   default: ({ bookings, confirmedStays, numDays, cabinCount }) => (
@@ -40,18 +40,52 @@ describe("DashboardLayout", () => {
     vi.resetAllMocks();
   });
 
-  it("shows the loading state while required dashboard data is loading", () => {
-    useRecentBookings.mockReturnValue({ bookings: undefined, isLoading: true });
+  it("keeps loading ahead of a stale dashboard query error", () => {
+    useRecentBookings.mockReturnValue({
+      bookings: undefined,
+      isLoading: true,
+      error: null,
+    });
     useRecentStays.mockReturnValue({
       confirmedStays: undefined,
       isLoading: false,
       numDays: 7,
+      error: new Error("Previous dashboard query failed"),
     });
-    useCabins.mockReturnValue({ cabins: undefined, isLoading: false });
+    useCabins.mockReturnValue({
+      cabins: undefined,
+      isLoading: false,
+      error: null,
+    });
 
     renderWithProviders(<DashboardLayout />);
 
-    expect(screen.getByText("Loading dashboard")).toBeVisible();
+    expect(
+      screen.getByRole("status", { name: "Loading dashboard" }),
+    ).toBeVisible();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Stats:/)).not.toBeInTheDocument();
+  });
+
+  it("renders a dashboard query failure instead of throwing missing-data state", () => {
+    useRecentBookings.mockReturnValue({
+      bookings: undefined,
+      isLoading: false,
+      error: new Error("Bookings failed"),
+    });
+    useRecentStays.mockReturnValue({
+      confirmedStays: [],
+      isLoading: false,
+      numDays: 7,
+      error: null,
+    });
+    useCabins.mockReturnValue({ cabins: [], isLoading: false, error: null });
+
+    renderWithProviders(<DashboardLayout />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Dashboard could not be loaded. Please try again.",
+    );
     expect(screen.queryByText(/Stats:/)).not.toBeInTheDocument();
   });
 
@@ -59,13 +93,19 @@ describe("DashboardLayout", () => {
     useRecentBookings.mockReturnValue({
       bookings: [{ created_at: "2026-09-10T00:00:00.000Z" }],
       isLoading: false,
+      error: null,
     });
     useRecentStays.mockReturnValue({
       confirmedStays: [{ id: 1 }],
       isLoading: false,
       numDays: 7,
+      error: null,
     });
-    useCabins.mockReturnValue({ cabins: [{ id: 1 }, { id: 2 }], isLoading: false });
+    useCabins.mockReturnValue({
+      cabins: [{ id: 1 }, { id: 2 }],
+      isLoading: false,
+      error: null,
+    });
 
     renderWithProviders(<DashboardLayout />);
 

@@ -4,6 +4,7 @@ import Heading from "../../ui/Heading";
 import Row from "../../ui/Row";
 import { useTodayActivity } from "./useTodayActivity";
 import Spinner from "../../ui/Spinner";
+import QueryError from "../../ui/QueryError";
 import TodayItem from "./TodayItem";
 
 const StyledToday = styled.div`
@@ -32,14 +33,27 @@ const NoActivity = styled.p`
 const HorizontalRow = styled(Row)<{ type: "horizontal" }>``;
 
 function TodayActivity() {
-  const { activities, isLoading } = useTodayActivity();
+  const { activities, isLoading, error } = useTodayActivity();
 
   return (
     <StyledToday>
-      <HorizontalRow type="horizontal"><Heading as="h2">Today</Heading></HorizontalRow>
-      {isLoading ? <Spinner /> : activities && activities.length > 0 ? (
-        <TodayList>{activities.map((activity) => <TodayItem key={activity.id} activity={activity} />)}</TodayList>
-      ) : <NoActivity>No activities today</NoActivity>}
+      <HorizontalRow type="horizontal">
+        <Heading as="h2">Today</Heading>
+      </HorizontalRow>
+
+      {isLoading ? (
+        <Spinner role="status" aria-label="Loading today's activities" />
+      ) : error ? (
+        <QueryError resourceName="Today's activities" />
+      ) : activities && activities.length > 0 ? (
+        <TodayList>
+          {activities.map((activity) => (
+            <TodayItem key={activity.id} activity={activity} />
+          ))}
+        </TodayList>
+      ) : (
+        <NoActivity>No activities today</NoActivity>
+      )}
     </StyledToday>
   );
 }
