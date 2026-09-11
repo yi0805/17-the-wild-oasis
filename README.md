@@ -77,7 +77,7 @@ The verified table boundary grants authenticated users only the application oper
 
 ## Testing and CI
 
-The current suite contains **29 test files and 137 tests**. It uses Vitest, React Testing Library, and focused local Supabase/Storage mocks—tests target observable workflows and service failure behaviour rather than component implementation details.
+The current suite contains **30 test files and 152 tests**. It uses Vitest, React Testing Library, and focused local Supabase/Storage mocks—tests target observable workflows and service failure behaviour rather than component implementation details.
 
 The [GitHub Actions workflow](.github/workflows/ci.yml) runs `npm ci`, lint, typecheck, tests, and the production build on pull requests to `main` and pushes to `main`.
 
@@ -127,7 +127,7 @@ Vercel is the verified active deployment platform. The production URL is [https:
 
 ## Known limitations and deferred work
 
-- Public Storage delivery URLs are intentional. Browser and service upload validation allow only JPEG, PNG, and WebP files up to 5,242,880 bytes; the matching bucket-restriction migration is prepared but requires manual SQL Editor application after review/merge.
+- Public Storage delivery URLs are intentional. Browser and service upload validation allow only JPEG, PNG, and WebP files up to 5,242,880 bytes; human SQL verification confirmed matching hosted enforcement for both existing Storage buckets.
 - Previous cabin-image cleanup after a successful replacement is deferred until ownership can be identified safely.
 - Two moderate React Router v6 advisories remain; the available remediation is an intentionally deferred breaking v7 upgrade.
 - The production build retains a documented large initial-bundle warning.
