@@ -62,9 +62,14 @@ const StyleNavLink = styled(NavLink)`
   }
 `;
 
-function MainNav() {
+type MainNavProps = {
+  id?: string;
+  ariaLabel?: string;
+};
+
+function MainNav({ id, ariaLabel = "Primary navigation" }: MainNavProps) {
   return (
-    <nav>
+    <nav aria-label={ariaLabel} id={id}>
       <NavList>
         <li>
           <StyleNavLink to="/dashboard">
