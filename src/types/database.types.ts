@@ -83,6 +83,30 @@ export type Database = {
           },
         ]
       }
+      cabin_image_cleanup_queue: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          last_attempt_at: string | null
+          last_error: string | null
+          object_name: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          object_name: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          object_name?: string
+        }
+        Relationships: []
+      }
       cabins: {
         Row: {
           created_at: string

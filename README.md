@@ -71,13 +71,13 @@ The verified table boundary grants authenticated users only the application oper
 
 ## Reliability examples
 
-**Cabin images.** A new image is uploaded before the cabin database write, so an upload failure leaves an existing cabin unchanged. If the subsequent create or edit write fails, the service makes a best-effort attempt to remove the newly uploaded object. This is explicit compensation, not a cross-service transaction. Cleanup of a prior cabin image after a successful replacement remains deferred until application-owned objects can be identified safely.
+**Cabin images.** A new image is uploaded before the cabin database write, so an upload failure leaves an existing cabin unchanged. If the subsequent create or edit write fails, the service makes a best-effort attempt to remove the newly uploaded object. After a successful replacement, cleanup is limited to a strictly canonical application-owned old URL that no cabin still references; it is queued before deletion and failed deletion remains available for a bounded retry on the Cabins page. Historical/default images, cabin-delete cleanup, and guaranteed background processing remain out of scope.
 
 **Avatars.** The service first resolves the authoritative Auth user, uploads a new avatar, then persists the requested profile metadata and avatar URL in one Auth update. If that update fails, it attempts to remove the new object. After success, it deletes the previous avatar only when it is clearly an application-owned object for that same user; malformed, external, unrelated, and other-user URLs are never deleted. Hosted verification covered successful replacement and previous-object removal.
 
 ## Testing and CI
 
-The current suite contains **30 test files and 152 tests**. It uses Vitest, React Testing Library, and focused local Supabase/Storage mocks—tests target observable workflows and service failure behaviour rather than component implementation details.
+The current suite contains **33 test files and 167 tests**. It uses Vitest, React Testing Library, and focused local Supabase/Storage mocks—tests target observable workflows and service failure behaviour rather than component implementation details.
 
 The [GitHub Actions workflow](.github/workflows/ci.yml) runs `npm ci`, lint, typecheck, tests, and the production build on pull requests to `main` and pushes to `main`.
 
@@ -128,7 +128,7 @@ Vercel is the verified active deployment platform. The production URL is [https:
 ## Known limitations and deferred work
 
 - Public Storage delivery URLs are intentional. Browser and service upload validation allow only JPEG, PNG, and WebP files up to 5,242,880 bytes; human SQL verification confirmed matching hosted enforcement for both existing Storage buckets.
-- Previous cabin-image cleanup after a successful replacement is deferred until ownership can be identified safely.
+- Cabin-image cleanup applies only to canonical, currently unreferenced replacement objects; historical/legacy images and cabin-delete cleanup remain out of scope, and retries run only during bounded Cabins-page lifecycle passes rather than guaranteed background processing.
 - Two moderate React Router v6 advisories remain; the available remediation is an intentionally deferred breaking v7 upgrade.
 - The production build retains a documented large initial-bundle warning.
 - Broader responsive and accessibility hardening remains Phase 4 work.

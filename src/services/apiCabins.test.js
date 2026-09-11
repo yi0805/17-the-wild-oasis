@@ -9,11 +9,15 @@ const { supabaseMock, supabaseUrl } = vi.hoisted(() => ({
     },
   },
 }));
+const { cleanupReplacedCabinImage } = vi.hoisted(() => ({
+  cleanupReplacedCabinImage: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("./supabase", () => ({
   default: supabaseMock,
   supabaseUrl,
 }));
+vi.mock("./apiCabinImageCleanup", () => ({ cleanupReplacedCabinImage }));
 
 import { createEditCabin } from "./apiCabins";
 import { MAX_IMAGE_FILE_SIZE } from "../utils/imageUpload";
@@ -130,15 +134,26 @@ describe("createEditCabin", () => {
     const select = vi.fn(() => ({ single }));
     const eq = vi.fn(() => ({ select }));
     const update = vi.fn(() => ({ eq }));
+    const previousImageSingle = vi.fn().mockResolvedValue({
+      data: { image: "https://images.example.com/old-cabin.png" },
+      error: null,
+    });
+    const previousImageEq = vi.fn(() => ({ single: previousImageSingle }));
+    const previousImageSelect = vi.fn(() => ({ eq: previousImageEq }));
     supabaseMock.storage.from.mockReturnValue({ upload, remove });
-    supabaseMock.from.mockReturnValue({ update });
+    supabaseMock.from
+      .mockReturnValueOnce({ select: previousImageSelect })
+      .mockReturnValueOnce({ update });
     await expect(createEditCabin(newCabin, 7)).rejects.toThrow(
       "Cabin could not be saved",
     );
 
     expect(update).toHaveBeenCalledWith({ ...newCabin, image: imagePath });
     expect(eq).toHaveBeenCalledWith("id", 7);
+    expect(previousImageSelect).toHaveBeenCalledWith("image");
+    expect(previousImageEq).toHaveBeenCalledWith("id", 7);
     expect(remove).toHaveBeenCalledWith([imageName]);
+    expect(cleanupReplacedCabinImage).not.toHaveBeenCalled();
     expect(upload.mock.invocationCallOrder[0]).toBeLessThan(
       update.mock.invocationCallOrder[0],
     );
@@ -163,6 +178,8 @@ describe("createEditCabin", () => {
     expect(eq).toHaveBeenCalledWith("id", 7);
     expect(supabaseMock.storage.from).not.toHaveBeenCalled();
     expect(crypto.randomUUID).not.toHaveBeenCalled();
+    expect(supabaseMock.from).toHaveBeenCalledTimes(1);
+    expect(cleanupReplacedCabinImage).not.toHaveBeenCalled();
   });
 
   it("returns the created cabin after a successful new-image mutation", async () => {
@@ -186,6 +203,7 @@ describe("createEditCabin", () => {
     expect(upload).toHaveBeenCalledWith(imageName, image);
     expect(insert).toHaveBeenCalledWith([{ ...newCabin, image: imagePath }]);
     expect(remove).not.toHaveBeenCalled();
+    expect(supabaseMock.from).toHaveBeenCalledTimes(1);
   });
 
   it("uses a MIME-derived .jpg name without the original filename", async () => {
@@ -237,8 +255,16 @@ describe("createEditCabin", () => {
     const select = vi.fn(() => ({ single }));
     const eq = vi.fn(() => ({ select }));
     const update = vi.fn(() => ({ eq }));
+    const previousImageSingle = vi.fn().mockResolvedValue({
+      data: { image: "https://images.example.com/old-cabin.png" },
+      error: null,
+    });
+    const previousImageEq = vi.fn(() => ({ single: previousImageSingle }));
+    const previousImageSelect = vi.fn(() => ({ eq: previousImageEq }));
     supabaseMock.storage.from.mockReturnValue({ upload, remove });
-    supabaseMock.from.mockReturnValue({ update });
+    supabaseMock.from
+      .mockReturnValueOnce({ select: previousImageSelect })
+      .mockReturnValueOnce({ update });
 
     await expect(
       createEditCabin({ name: "Updated Forest Cabin", image }, 7),
@@ -249,6 +275,55 @@ describe("createEditCabin", () => {
       name: "Updated Forest Cabin",
       image: `${SUPABASE_URL}/storage/v1/object/public/cabin-images/${imageName}`,
     });
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  it("aborts a replacement before upload when the authoritative image read fails", async () => {
+    const image = createImageFile("replacement.png");
+    const previousImageSingle = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Read failed" },
+    });
+    const previousImageEq = vi.fn(() => ({ single: previousImageSingle }));
+    const previousImageSelect = vi.fn(() => ({ eq: previousImageEq }));
+    supabaseMock.from.mockReturnValue({ select: previousImageSelect });
+
+    await expect(
+      createEditCabin({ name: "Updated Forest Cabin", image }, 7),
+    ).rejects.toThrow("Cabin image could not be prepared for replacement");
+
+    expect(supabaseMock.storage.from).not.toHaveBeenCalled();
+    expect(supabaseMock.from).toHaveBeenCalledTimes(1);
+    expect(previousImageSelect).toHaveBeenCalledWith("image");
+    expect(cleanupReplacedCabinImage).not.toHaveBeenCalled();
+  });
+
+  it("starts old-image cleanup only after a successful replacement update", async () => {
+    const image = createImageFile("replacement.png");
+    const previousImage = `${SUPABASE_URL}/storage/v1/object/public/cabin-images/cabin-${UUID}.png`;
+    const previousImageSingle = vi.fn().mockResolvedValue({
+      data: { image: previousImage },
+      error: null,
+    });
+    const previousImageEq = vi.fn(() => ({ single: previousImageSingle }));
+    const previousImageSelect = vi.fn(() => ({ eq: previousImageEq }));
+    const single = vi.fn().mockResolvedValue({ data: { id: 7 }, error: null });
+    const select = vi.fn(() => ({ single }));
+    const eq = vi.fn(() => ({ select }));
+    const update = vi.fn(() => ({ eq }));
+    const upload = vi.fn().mockResolvedValue({ error: null });
+    const remove = vi.fn();
+    supabaseMock.storage.from.mockReturnValue({ upload, remove });
+    supabaseMock.from
+      .mockReturnValueOnce({ select: previousImageSelect })
+      .mockReturnValueOnce({ update });
+
+    await createEditCabin({ name: "Updated Forest Cabin", image }, 7);
+
+    expect(cleanupReplacedCabinImage).toHaveBeenCalledWith(previousImage);
+    expect(update.mock.invocationCallOrder[0]).toBeLessThan(
+      cleanupReplacedCabinImage.mock.invocationCallOrder[0],
+    );
     expect(remove).not.toHaveBeenCalled();
   });
 });

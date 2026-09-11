@@ -176,3 +176,9 @@ The migration was manually applied through Supabase SQL Editor. Human SQL verifi
 | `cabin-images` | `true` | `5242880` | `image/jpeg`, `image/png`, `image/webp` |
 
 The migration did not change bucket visibility or any `storage.objects` RLS policy. Hosted CLI migration history remains unreconciled, so future migrations must continue to be applied through the reviewed SQL Editor process rather than `supabase db push`.
+
+### Task 043 — Verified cabin-image cleanup queue
+
+The human manually applied `supabase/migrations/20260911010000_cabin_image_cleanup_queue.sql` through Supabase SQL Editor. Hosted verification confirmed that `public.cabin_image_cleanup_queue` exists and was empty after the verification transaction was rolled back. The authenticated INSERT, SELECT, UPDATE, and DELETE path was verified; anonymous SELECT was denied with table permission denial.
+
+Hosted CLI migration history remains unreconciled. Do not use `supabase db push`.
