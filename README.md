@@ -29,6 +29,7 @@ Public sign-up is disabled. Authenticated operations access requires an account 
 - Supabase Auth, PostgreSQL RLS/grants, and Storage policies form the authorization boundary for a simple trusted-operator model.
 - Storage-backed cabin and avatar mutations use explicit ordering and best-effort compensation for failed follow-up writes.
 - Vitest and React Testing Library cover behavioural workflows and service-level mutation failures; GitHub Actions runs lint, typecheck, tests, and the production build.
+- Measured route-level code splitting reduced the initial production entry bundle from 284.19 kB gzip to 138.82 kB gzip on the same local build environment.
 - The active deployment is hosted on Vercel.
 
 ## What the application supports
@@ -77,7 +78,7 @@ The verified table boundary grants authenticated users only the application oper
 
 ## Testing and CI
 
-The current suite contains **33 test files and 168 tests**. It uses Vitest, React Testing Library, and focused local Supabase/Storage mocks—tests target observable workflows and service failure behaviour rather than component implementation details.
+The current suite contains **34 test files and 169 tests**. It uses Vitest, React Testing Library, and focused local Supabase/Storage mocks—tests target observable workflows and service failure behaviour rather than component implementation details.
 
 The [GitHub Actions workflow](.github/workflows/ci.yml) runs `npm ci`, lint, typecheck, tests, and the production build on pull requests to `main` and pushes to `main`.
 
@@ -130,6 +131,6 @@ Vercel is the verified active deployment platform. The production URL is [https:
 - Public Storage delivery URLs are intentional. Browser and service upload validation allow only JPEG, PNG, and WebP files up to 5,242,880 bytes; human SQL verification confirmed matching hosted enforcement for both existing Storage buckets.
 - Cabin-image cleanup applies only to canonical, currently unreferenced replacement objects; historical/legacy images and cabin-delete cleanup remain out of scope, and retries run only during bounded Cabins-page lifecycle passes rather than guaranteed background processing.
 - Two moderate React Router v6 advisories remain; the available remediation is an intentionally deferred breaking v7 upgrade.
-- The production build retains a documented large initial-bundle warning.
+- Route-level splitting removes the prior large initial-entry warning, but no bundle budget or further dependency-level performance analysis has been established.
 - Broader responsive and accessibility hardening remains Phase 4 work.
 - Supabase security migrations were manually applied through the SQL Editor. Hosted Supabase CLI migration history is not reconciled, so `supabase db push` should not be assumed safe.
