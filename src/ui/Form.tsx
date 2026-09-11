@@ -14,6 +14,10 @@ const Form = styled.form<FormProps>`
       border: 1px solid var(--color-border-subtle);
       border-radius: var(--border-radius-lg);
       box-shadow: var(--shadow-sm);
+
+      @media (max-width: 700px) {
+        padding: 2rem;
+      }
     `}
 
   ${(props) =>
