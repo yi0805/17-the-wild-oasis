@@ -10,6 +10,10 @@ const StyledFormRow = styled.div`
 
   padding: 1.5rem 0;
 
+  & > * {
+    min-width: 0;
+  }
+
   &:first-child {
     padding-top: 0;
   }
@@ -26,6 +30,17 @@ const StyledFormRow = styled.div`
     display: flex;
     justify-content: flex-end;
     gap: 1.2rem;
+  }
+
+  @media (max-width: 700px) {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0.8rem;
+
+    &:has(button) {
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
   }
 `;
 
