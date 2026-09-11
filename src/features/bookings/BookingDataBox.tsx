@@ -23,6 +23,7 @@ type BookingDataBoxProps = {
 };
 
 const StyledBookingDataBox = styled.section`
+  min-width: 0;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-lg);
@@ -40,13 +41,20 @@ const Header = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 2rem;
+
+  & > * {
+    min-width: 0;
+  }
 
   svg {
     height: 3.2rem;
     width: 3.2rem;
+    flex: 0 0 auto;
   }
 
   & div:first-child {
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 1.6rem;
@@ -54,34 +62,72 @@ const Header = styled.header`
     font-size: 1.8rem;
   }
 
+  & div:first-child > p,
+  & > p {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
   & span {
     font-variant-numeric: tabular-nums;
     font-size: 2rem;
     margin-left: 4px;
   }
+
+  @media (max-width: 700px) {
+    padding: 2rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+
+    & div:first-child {
+      align-items: flex-start;
+      gap: 1rem;
+    }
+  }
 `;
 
 const Section = styled.section`
+  min-width: 0;
   padding: 3.2rem 3.2rem 1.2rem;
+
+  @media (max-width: 700px) {
+    padding: 2rem 2rem 1rem;
+  }
 `;
 
 const Guest = styled.div`
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 1.2rem;
   margin-bottom: 1.6rem;
   color: var(--color-grey-500);
 
+  & p {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
   & p:first-of-type {
     font-weight: 500;
     color: var(--color-grey-700);
   }
+
+  @media (max-width: 700px) {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    column-gap: 0.8rem;
+    row-gap: 0.6rem;
+  }
 `;
 
 const Price = styled.div<{ $paymentState: PaymentState }>`
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1.6rem;
   padding: 1.6rem 2rem;
   border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
   border-radius: var(--border-radius-md);
@@ -100,6 +146,10 @@ const Price = styled.div<{ $paymentState: PaymentState }>`
         ? "var(--color-yellow-700)"
         : "var(--color-grey-700)"};
 
+  & > * {
+    min-width: 0;
+  }
+
   & p:last-child {
     text-transform: uppercase;
     font-size: 1.4rem;
@@ -111,6 +161,13 @@ const Price = styled.div<{ $paymentState: PaymentState }>`
     width: 2.4rem;
     color: currentColor !important;
   }
+
+  @media (max-width: 700px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 1.4rem;
+  }
 `;
 
 const Footer = styled.footer`
@@ -119,6 +176,11 @@ const Footer = styled.footer`
   font-size: 1.2rem;
   color: var(--color-grey-500);
   text-align: right;
+
+  @media (max-width: 700px) {
+    padding: 1.4rem 2rem;
+    text-align: left;
+  }
 `;
 
 function isValidDate(value: string | null): value is string {
