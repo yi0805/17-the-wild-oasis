@@ -2,6 +2,10 @@
 
 The Wild Oasis is a hotel operations dashboard for managing cabins, bookings, check-in/check-out, hotel settings, and user profiles. It is an engineering portfolio project focused on React and TypeScript architecture, client-side server-state handling, reliable mutations, Supabase security boundaries, automated regression tests, and CI.
 
+**Stack:** React 18 · TypeScript · Vite · Supabase · TanStack Query · React Hook Form · Vitest / React Testing Library · GitHub Actions · Vercel
+
+[![CI](https://github.com/yi0805/the-wild-oasis/actions/workflows/ci.yml/badge.svg)](https://github.com/yi0805/the-wild-oasis/actions/workflows/ci.yml)
+
 ## Live deployment
 
 [Open the Vercel deployment](https://17-the-wild-oasis-blond.vercel.app)
