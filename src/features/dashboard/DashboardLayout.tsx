@@ -2,6 +2,7 @@ import styled from "styled-components";
 
 import { useRecentBookings } from "./useRecentBookings";
 import Spinner from "../../ui/Spinner";
+import QueryError from "../../ui/QueryError";
 import { useRecentStays } from "./useRecentStays";
 import Stats from "./Stats";
 import { useCabins } from "../cabins/useCabins";
@@ -22,18 +23,31 @@ const StyledDashboardLayout = styled.div`
 `;
 
 function DashboardLayout() {
-  const { bookings, isLoading: isLoadingBookings } = useRecentBookings();
+  const {
+    bookings,
+    isLoading: isLoadingBookings,
+    error: bookingsError,
+  } = useRecentBookings();
 
   const {
     confirmedStays,
     isLoading: isLoadingStays,
     numDays,
+    error: staysError,
   } = useRecentStays();
 
-  const { cabins, isLoading: isLoadingCabins } = useCabins();
+  const {
+    cabins,
+    isLoading: isLoadingCabins,
+    error: cabinsError,
+  } = useCabins();
 
   if (isLoadingBookings || isLoadingStays || isLoadingCabins) {
-    return <Spinner />;
+    return <Spinner role="status" aria-label="Loading dashboard" />;
+  }
+
+  if (bookingsError || staysError || cabinsError) {
+    return <QueryError resourceName="Dashboard" />;
   }
 
   if (!bookings || !confirmedStays || !cabins) {
