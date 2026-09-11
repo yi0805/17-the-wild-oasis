@@ -140,6 +140,47 @@ describe("CreateCabinForm", () => {
     expect(onCloseModal).not.toHaveBeenCalled();
   });
 
+  it("blocks an unsupported cabin image before the mutation", async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    renderCreateCabinForm();
+
+    const fields = getCabinFields();
+    await fillValidCabinForm(user);
+    await user.upload(
+      fields.image,
+      new File(["not an image"], "forest-cabin.gif", { type: "image/gif" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Create new cabin" }),
+    );
+
+    expect(
+      await screen.findByText("Use a JPEG, PNG, or WebP image."),
+    ).toBeVisible();
+    expect(createEditCabin).not.toHaveBeenCalled();
+  });
+
+  it("blocks an oversized cabin image before the mutation", async () => {
+    const user = userEvent.setup();
+    renderCreateCabinForm();
+
+    const fields = getCabinFields();
+    await fillValidCabinForm(user);
+    const image = new File(["cabin image"], "forest-cabin.png", {
+      type: "image/png",
+    });
+    Object.defineProperty(image, "size", { value: 5 * 1024 * 1024 + 1 });
+    await user.upload(fields.image, image);
+    await user.click(
+      screen.getByRole("button", { name: "Create new cabin" }),
+    );
+
+    expect(
+      await screen.findByText("Image must be 5 MB or smaller."),
+    ).toBeVisible();
+    expect(createEditCabin).not.toHaveBeenCalled();
+  });
+
   it("blocks an edit with a nullable database image", async () => {
     const user = userEvent.setup();
     const cabinToEdit = {

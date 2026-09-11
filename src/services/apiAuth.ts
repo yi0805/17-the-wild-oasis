@@ -1,5 +1,6 @@
 import supabase, { supabaseUrl } from "./supabase";
 import type { UserAttributes } from "@supabase/supabase-js";
+import { validateImageFile } from "../utils/imageUpload";
 
 type LoginCredentials = {
   email: string;
@@ -103,6 +104,11 @@ export async function updateCurrentUser({
   fullName,
   avatar,
 }: UpdateCurrentUserInput) {
+  if (avatar) {
+    const validationError = validateImageFile(avatar);
+    if (validationError) throw new Error(validationError);
+  }
+
   const client = getSupabaseClient();
   let updateData: CurrentUserAttributes = {};
   if (password) {

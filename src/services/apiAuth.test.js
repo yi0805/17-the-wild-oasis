@@ -19,11 +19,24 @@ vi.mock("./supabase", () => ({
 }));
 
 import { updateCurrentUser } from "./apiAuth";
+import { MAX_IMAGE_FILE_SIZE } from "../utils/imageUpload";
 
 const userId = "synthetic-user-id";
 const newAvatarName = `avatar-${userId}-0.5`;
 const newAvatarUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${newAvatarName}`;
-const avatar = { name: "synthetic-avatar.png" };
+const avatar = new File(["synthetic avatar"], "synthetic-avatar.png", {
+  type: "image/png",
+});
+
+function createOversizedAvatar() {
+  const oversizedAvatar = new File(["synthetic avatar"], "avatar.png", {
+    type: "image/png",
+  });
+  Object.defineProperty(oversizedAvatar, "size", {
+    value: MAX_IMAGE_FILE_SIZE + 1,
+  });
+  return oversizedAvatar;
+}
 
 function mockStorage({ uploadError = null, removeError = null } = {}) {
   const upload = vi.fn().mockResolvedValue({ error: uploadError });
@@ -57,6 +70,30 @@ describe("updateCurrentUser", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("rejects an unsupported avatar before Auth or Storage work", async () => {
+    const invalidAvatar = new File(["not an image"], "avatar.gif", {
+      type: "image/gif",
+    });
+
+    await expect(updateCurrentUser({ avatar: invalidAvatar })).rejects.toThrow(
+      "Use a JPEG, PNG, or WebP image.",
+    );
+
+    expect(supabaseMock.auth.getUser).not.toHaveBeenCalled();
+    expect(supabaseMock.storage.from).not.toHaveBeenCalled();
+    expect(supabaseMock.auth.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("rejects an oversized avatar before Auth or Storage work", async () => {
+    await expect(
+      updateCurrentUser({ avatar: createOversizedAvatar() }),
+    ).rejects.toThrow("Image must be 5 MB or smaller.");
+
+    expect(supabaseMock.auth.getUser).not.toHaveBeenCalled();
+    expect(supabaseMock.storage.from).not.toHaveBeenCalled();
+    expect(supabaseMock.auth.updateUser).not.toHaveBeenCalled();
   });
 
   it("keeps password-only updates on the Auth path without touching Storage", async () => {

@@ -15,6 +15,7 @@ import Input from "../../ui/Input";
 
 import { useUpdateUser } from "./useUpdateUser";
 import { useUser } from "./useUser";
+import { IMAGE_INPUT_ACCEPT, validateImageFile } from "../../utils/imageUpload";
 
 const SecondaryButton = styled(Button)<{ variation: "secondary" }>``;
 
@@ -34,6 +35,7 @@ function UpdateUserDataForm() {
 
   const [fullName, setFullName] = useState(currentFullName);
   const [avatar, setAvatar] = useState<File | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -44,12 +46,17 @@ function UpdateUserDataForm() {
     event.preventDefault();
     if (!fullName.trim()) return;
 
+    const validationError = avatar ? validateImageFile(avatar) : null;
+    setAvatarError(validationError);
+    if (validationError) return;
+
     const form = event.currentTarget;
     updateUser(
       { fullName, avatar },
       {
         onSuccess: () => {
           setAvatar(null);
+          setAvatarError(null);
           form.reset();
           if (avatarInputRef.current) avatarInputRef.current.value = "";
         },
@@ -62,12 +69,15 @@ function UpdateUserDataForm() {
   }
 
   function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
-    setAvatar(event.target.files?.[0] ?? null);
+    const selectedAvatar = event.target.files?.[0] ?? null;
+    setAvatar(selectedAvatar);
+    setAvatarError(selectedAvatar ? validateImageFile(selectedAvatar) : null);
   }
 
   function handleCancel() {
     setFullName(currentFullName);
     setAvatar(null);
+    setAvatarError(null);
     if (avatarInputRef.current) avatarInputRef.current.value = "";
   }
 
@@ -87,11 +97,11 @@ function UpdateUserDataForm() {
           disabled={isDisabled}
         />
       </FormRow>
-      <FormRow label="Avatar image" error={undefined}>
+      <FormRow label="Avatar image" error={avatarError ?? undefined}>
         <FileInput
           id="avatar"
           ref={avatarInputRef}
-          accept="image/*"
+          accept={IMAGE_INPUT_ACCEPT}
           onChange={handleAvatarChange}
           disabled={isDisabled}
         />
