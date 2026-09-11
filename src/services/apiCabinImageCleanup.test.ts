@@ -91,12 +91,14 @@ describe("cabin image cleanup", () => {
     const references = cabinReferenceQuery();
     const upsert = vi.fn().mockResolvedValue({ error: null });
     const queueEntry = queueEntryQuery();
+    const finalReferences = cabinReferenceQuery();
     const queueDelete = queueDeleteQuery();
     const remove = vi.fn().mockResolvedValue({ error: null });
     supabaseMock.from
       .mockReturnValueOnce(references)
       .mockReturnValueOnce({ upsert })
       .mockReturnValueOnce(queueEntry)
+      .mockReturnValueOnce(finalReferences)
       .mockReturnValueOnce(queueDelete);
     supabaseMock.storage.from.mockReturnValue({ remove });
 
@@ -111,18 +113,23 @@ describe("cabin image cleanup", () => {
     expect(upsert.mock.invocationCallOrder[0]).toBeLessThan(
       remove.mock.invocationCallOrder[0],
     );
+    expect(finalReferences.eq.mock.invocationCallOrder[0]).toBeLessThan(
+      remove.mock.invocationCallOrder[0],
+    );
   });
 
   it("keeps a durable queue entry and records metadata after immediate Storage cleanup fails", async () => {
     const references = cabinReferenceQuery();
     const upsert = vi.fn().mockResolvedValue({ error: null });
     const queueEntry = queueEntryQuery(queueItem(OLD_OBJECT, 2));
+    const finalReferences = cabinReferenceQuery();
     const queueUpdate = queueUpdateQuery();
     const remove = vi.fn().mockResolvedValue({ error: { message: "Storage failed" } });
     supabaseMock.from
       .mockReturnValueOnce(references)
       .mockReturnValueOnce({ upsert })
       .mockReturnValueOnce(queueEntry)
+      .mockReturnValueOnce(finalReferences)
       .mockReturnValueOnce(queueUpdate);
     supabaseMock.storage.from.mockReturnValue({ remove });
 
@@ -148,6 +155,31 @@ describe("cabin image cleanup", () => {
     await expect(cleanupReplacedCabinImage(OLD_IMAGE_URL)).resolves.toBeUndefined();
 
     expect(remove).not.toHaveBeenCalled();
+  });
+
+  it("keeps a queued image when a final pre-delete reference appears", async () => {
+    const firstReferences = cabinReferenceQuery();
+    const upsert = vi.fn().mockResolvedValue({ error: null });
+    const queueEntry = queueEntryQuery();
+    const finalReferences = cabinReferenceQuery([{ id: 9 }]);
+    const remove = vi.fn();
+    supabaseMock.from
+      .mockReturnValueOnce(firstReferences)
+      .mockReturnValueOnce({ upsert })
+      .mockReturnValueOnce(queueEntry)
+      .mockReturnValueOnce(finalReferences);
+    supabaseMock.storage.from.mockReturnValue({ remove });
+
+    await expect(cleanupReplacedCabinImage(OLD_IMAGE_URL)).resolves.toBeUndefined();
+
+    expect(firstReferences.eq).toHaveBeenCalledWith("image", OLD_IMAGE_URL);
+    expect(finalReferences.eq).toHaveBeenCalledWith("image", OLD_IMAGE_URL);
+    expect(remove).not.toHaveBeenCalled();
+    expect(supabaseMock.from).toHaveBeenCalledTimes(4);
+    expect(supabaseMock.from).toHaveBeenNthCalledWith(1, "cabins");
+    expect(supabaseMock.from).toHaveBeenNthCalledWith(2, "cabin_image_cleanup_queue");
+    expect(supabaseMock.from).toHaveBeenNthCalledWith(3, "cabin_image_cleanup_queue");
+    expect(supabaseMock.from).toHaveBeenNthCalledWith(4, "cabins");
   });
 
   it("does not delete Storage when the post-update reference check fails", async () => {

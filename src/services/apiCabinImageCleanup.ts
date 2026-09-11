@@ -83,6 +83,20 @@ async function recordFailedCleanupAttempt(
 }
 
 async function attemptQueuedCleanup(queueItem: CleanupQueueItem) {
+  const imageUrl = getCabinImageUrl(queueItem.object_name);
+  const ownedObjectName = getOwnedCabinImageObjectName(imageUrl, supabaseUrl);
+  if (ownedObjectName !== queueItem.object_name) {
+    console.error("Cabin image cleanup queue item is not canonical", queueItem.object_name);
+    return;
+  }
+
+  try {
+    if (await hasCabinImageReference(imageUrl)) return;
+  } catch (error) {
+    console.error("Cabin image cleanup final reference check failed", error);
+    return;
+  }
+
   const { error: storageError } = await getSupabaseClient().storage
     .from("cabin-images")
     .remove([queueItem.object_name]);
@@ -145,15 +159,7 @@ export async function retryCabinImageCleanup() {
   }
 
   for (const queueItem of queueItems ?? []) {
-    const imageUrl = getCabinImageUrl(queueItem.object_name);
-    const ownedObjectName = getOwnedCabinImageObjectName(imageUrl, supabaseUrl);
-    if (ownedObjectName !== queueItem.object_name) {
-      console.error("Cabin image cleanup queue item is not canonical", queueItem.object_name);
-      continue;
-    }
-
     try {
-      if (await hasCabinImageReference(imageUrl)) continue;
       await attemptQueuedCleanup(queueItem);
     } catch (itemError) {
       console.error("Cabin image cleanup retry item failed", itemError);
