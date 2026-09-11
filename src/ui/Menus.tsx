@@ -1,5 +1,13 @@
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type {
+  KeyboardEvent,
   MouseEvent,
   ReactNode,
 } from "react";
@@ -38,6 +46,7 @@ const StyledToggle = styled.button`
 
 type MenuIdentifier = string | number;
 type MenuPosition = { x: number; y: number };
+type MenuFocusTarget = "first" | "last" | null;
 
 const StyledList = styled.ul<{ $position: MenuPosition }>`
   position: fixed;
@@ -83,8 +92,14 @@ const StyledButton = styled.button`
 
 type MenusContextValue = {
   openID: MenuIdentifier | null;
-  open: (id: MenuIdentifier) => void;
-  close: () => void;
+  open: (
+    id: MenuIdentifier,
+    toggle: HTMLButtonElement,
+    focusTarget: MenuFocusTarget,
+  ) => void;
+  close: (restoreFocus?: boolean) => void;
+  focusToggle: () => void;
+  focusTarget: MenuFocusTarget;
   position: MenuPosition | null;
   setPosition: (position: MenuPosition) => void;
 };
@@ -101,7 +116,7 @@ function useMenusContext() {
 
 type MenusProps = { children: ReactNode };
 type MenuProps = { children: ReactNode };
-type ToggleProps = { id: MenuIdentifier };
+type ToggleProps = { ariaLabel: string; id: MenuIdentifier };
 type ListProps = { id: MenuIdentifier; children: ReactNode };
 type MenuButtonProps = {
   children: ReactNode;
@@ -118,13 +133,47 @@ type MenusCompound = ((props: MenusProps) => JSX.Element) & {
 const Menus: MenusCompound = ({ children }) => {
   const [openID, setOpenID] = useState<MenuIdentifier | null>(null);
   const [position, setPosition] = useState<MenuPosition | null>(null);
+  const [focusTarget, setFocusTarget] = useState<MenuFocusTarget>(null);
+  const activeToggleRef = useRef<HTMLButtonElement | null>(null);
 
-  const close = () => setOpenID(null);
-  const open = setOpenID;
+  const focusToggle = useCallback(() => {
+    const toggle = activeToggleRef.current;
+    if (toggle?.isConnected && !toggle.disabled) toggle.focus();
+  }, []);
+
+  const close = useCallback(
+    (restoreFocus = false) => {
+      setOpenID(null);
+      setFocusTarget(null);
+      if (restoreFocus) focusToggle();
+    },
+    [focusToggle],
+  );
+
+  const open = useCallback(
+    (
+      id: MenuIdentifier,
+      toggle: HTMLButtonElement,
+      requestedFocusTarget: MenuFocusTarget,
+    ) => {
+      activeToggleRef.current = toggle;
+      setFocusTarget(requestedFocusTarget);
+      setOpenID(id);
+    },
+    [],
+  );
 
   return (
     <MenusContext.Provider
-      value={{ openID, open, close, position, setPosition }}
+      value={{
+        openID,
+        open,
+        close,
+        focusToggle,
+        focusTarget,
+        position,
+        setPosition,
+      }}
     >
       {children}
     </MenusContext.Provider>
@@ -135,42 +184,143 @@ function Menu({ children }: MenuProps) {
   return <MenuContainer>{children}</MenuContainer>;
 }
 
-function Toggle({ id }: ToggleProps) {
+function Toggle({ ariaLabel, id }: ToggleProps) {
   const { openID, open, close, setPosition } = useMenusContext();
 
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-
-    const rect = event.currentTarget.getBoundingClientRect();
+  function setMenuPosition(toggle: HTMLButtonElement) {
+    const rect = toggle.getBoundingClientRect();
     setPosition({
       x: window.innerWidth - rect.width - rect.x,
       y: rect.y + rect.height + 8,
     });
+  }
+
+  function openMenu(
+    toggle: HTMLButtonElement,
+    focusTarget: MenuFocusTarget,
+  ) {
+    setMenuPosition(toggle);
+    open(id, toggle, focusTarget);
+  }
+
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
 
     if (openID !== id) {
-      open(id);
+      openMenu(event.currentTarget, null);
     } else {
       close();
     }
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      openMenu(event.currentTarget, "first");
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      openMenu(event.currentTarget, "last");
+    }
+  };
+
   return (
-    <StyledToggle onClick={handleClick}>
+    <StyledToggle
+      aria-expanded={openID === id}
+      aria-haspopup="menu"
+      aria-label={ariaLabel}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+    >
       <HiEllipsisVertical />
     </StyledToggle>
   );
 }
 
 function List({ id, children }: ListProps) {
-  const { openID, position, close } = useMenusContext();
+  const { openID, position, close, focusTarget, focusToggle } = useMenusContext();
+  const isOpen = openID === id && position !== null;
   const ref = useOutsideClick<HTMLUListElement>(() => {
     close();
-  }, false);
+  }, false, isOpen);
 
-  if (openID !== id || position === null) return null;
+  const getMenuItems = useCallback(() => {
+    if (!ref.current) return [];
+
+    return Array.from(
+      ref.current.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'),
+    ).filter((item) => !item.disabled);
+  }, [ref]);
+
+  useEffect(() => {
+    if (!isOpen || !focusTarget) return;
+
+    const menuItems = getMenuItems();
+    const item =
+      focusTarget === "first" ? menuItems[0] : menuItems[menuItems.length - 1];
+    item?.focus();
+  }, [focusTarget, getMenuItems, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handleEscape(event: globalThis.KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close(true);
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [close, isOpen]);
+
+  function handleKeyDown(event: KeyboardEvent<HTMLUListElement>) {
+    if (event.key === "Tab") {
+      focusToggle();
+      close();
+      return;
+    }
+
+    const menuItems = getMenuItems();
+    if (!menuItems.length) return;
+
+    const currentIndex = menuItems.indexOf(
+      document.activeElement as HTMLButtonElement,
+    );
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      menuItems[
+        currentIndex === -1 ? 0 : (currentIndex + 1) % menuItems.length
+      ].focus();
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      menuItems[
+        currentIndex === -1
+          ? menuItems.length - 1
+          : (currentIndex - 1 + menuItems.length) % menuItems.length
+      ].focus();
+    }
+
+    if (event.key === "Home") {
+      event.preventDefault();
+      menuItems[0].focus();
+    }
+
+    if (event.key === "End") {
+      event.preventDefault();
+      menuItems[menuItems.length - 1].focus();
+    }
+  }
+
+  if (!isOpen) return null;
 
   return createPortal(
-    <StyledList $position={position} ref={ref}>
+    <StyledList $position={position} onKeyDown={handleKeyDown} ref={ref} role="menu">
       {children}
     </StyledList>,
     document.body,
@@ -178,16 +328,17 @@ function List({ id, children }: ListProps) {
 }
 
 function Button({ children, onClick, icon }: MenuButtonProps) {
-  const { close } = useMenusContext();
+  const { close, focusToggle } = useMenusContext();
 
   function handleClick() {
+    focusToggle();
     if (onClick) onClick();
     close();
   }
 
   return (
-    <li>
-      <StyledButton onClick={handleClick}>
+    <li role="none">
+      <StyledButton onClick={handleClick} role="menuitem">
         {icon}
         <span>{children}</span>
       </StyledButton>

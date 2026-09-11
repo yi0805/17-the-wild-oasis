@@ -133,7 +133,7 @@ function BookingRow({ booking }: BookingRowProps) {
 
       <Modal>
         <Menus.Menu>
-          <Menus.Toggle id={bookingId} />
+          <Menus.Toggle ariaLabel="Booking actions" id={bookingId} />
           <Menus.List id={bookingId}>
             <MenuButton
               icon={<HiEye />}
