@@ -1,5 +1,6 @@
 import supabase, { supabaseUrl } from "./supabase";
 import type { Tables, TablesInsert, TablesUpdate } from "../types/database.types";
+import { validateImageFile } from "../utils/imageUpload";
 
 type Cabin = Tables<"cabins">;
 type CabinInsert = TablesInsert<"cabins">;
@@ -28,6 +29,11 @@ export async function createEditCabin(
   newCabin: CabinMutationInput,
   id?: Cabin["id"],
 ) {
+  if (typeof newCabin.image !== "string") {
+    const validationError = validateImageFile(newCabin.image);
+    if (validationError) throw new Error(validationError);
+  }
+
   const existingImagePath =
     typeof newCabin.image === "string" && newCabin.image.startsWith(supabaseUrl)
       ? newCabin.image

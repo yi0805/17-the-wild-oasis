@@ -16,8 +16,19 @@ vi.mock("./supabase", () => ({
 }));
 
 import { createEditCabin } from "./apiCabins";
+import { MAX_IMAGE_FILE_SIZE } from "../utils/imageUpload";
 
 const SUPABASE_URL = "https://project.supabase.co";
+
+function createImageFile(name = "cabin.png") {
+  return new File(["cabin image"], name, { type: "image/png" });
+}
+
+function createOversizedImageFile() {
+  const image = createImageFile();
+  Object.defineProperty(image, "size", { value: MAX_IMAGE_FILE_SIZE + 1 });
+  return image;
+}
 
 describe("createEditCabin", () => {
   beforeEach(() => {
@@ -29,6 +40,28 @@ describe("createEditCabin", () => {
     vi.restoreAllMocks();
   });
 
+  it("rejects an unsupported new cabin image before Storage or database work", async () => {
+    const image = new File(["not an image"], "cabin.gif", {
+      type: "image/gif",
+    });
+
+    await expect(
+      createEditCabin({ name: "Forest Cabin", image }),
+    ).rejects.toThrow("Use a JPEG, PNG, or WebP image.");
+
+    expect(supabaseMock.storage.from).not.toHaveBeenCalled();
+    expect(supabaseMock.from).not.toHaveBeenCalled();
+  });
+
+  it("rejects an oversized new cabin image before Storage or database work", async () => {
+    await expect(
+      createEditCabin({ name: "Forest Cabin", image: createOversizedImageFile() }),
+    ).rejects.toThrow("Image must be 5 MB or smaller.");
+
+    expect(supabaseMock.storage.from).not.toHaveBeenCalled();
+    expect(supabaseMock.from).not.toHaveBeenCalled();
+  });
+
   it("does not mutate a cabin when a new image upload fails", async () => {
     const upload = vi.fn().mockResolvedValue({
       error: { message: "Storage upload failed" },
@@ -38,19 +71,20 @@ describe("createEditCabin", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
 
     await expect(
-      createEditCabin({ name: "Forest Cabin", image: { name: "forest.png" } }),
+      createEditCabin({ name: "Forest Cabin", image: createImageFile("forest.png") }),
     ).rejects.toThrow("Cabin image could not be uploaded");
 
     expect(supabaseMock.storage.from).toHaveBeenCalledWith("cabin-images");
-    expect(upload).toHaveBeenCalledWith("0.5-forest.png", {
-      name: "forest.png",
-    });
+    expect(upload).toHaveBeenCalledWith(
+      "0.5-forest.png",
+      expect.any(File),
+    );
     expect(supabaseMock.from).not.toHaveBeenCalled();
     expect(remove).not.toHaveBeenCalled();
   });
 
   it("removes a newly uploaded image when creating the cabin fails", async () => {
-    const image = { name: "new-cabin.png" };
+    const image = createImageFile("new-cabin.png");
     const imageName = "0.12345-new-cabin.png";
     const imagePath = `${SUPABASE_URL}/storage/v1/object/public/cabin-images/${imageName}`;
     const newCabin = { name: "Forest Cabin", image };
@@ -85,7 +119,7 @@ describe("createEditCabin", () => {
   });
 
   it("removes a newly uploaded image when editing the cabin fails", async () => {
-    const image = { name: "updated-cabin.png" };
+    const image = createImageFile("updated-cabin.png");
     const imageName = "0.23456-updated-cabin.png";
     const imagePath = `${SUPABASE_URL}/storage/v1/object/public/cabin-images/${imageName}`;
     const newCabin = { name: "Updated Forest Cabin", image };
@@ -135,7 +169,7 @@ describe("createEditCabin", () => {
   });
 
   it("returns the created cabin after a successful new-image mutation", async () => {
-    const image = { name: "created-cabin.png" };
+    const image = createImageFile("created-cabin.png");
     const imageName = "0.34567-created-cabin.png";
     const imagePath = `${SUPABASE_URL}/storage/v1/object/public/cabin-images/${imageName}`;
     const newCabin = { name: "New Cabin", image };

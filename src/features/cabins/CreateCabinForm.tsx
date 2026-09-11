@@ -15,6 +15,7 @@ import { useCreateCabin } from "./useCreateCabin";
 import { useEditCabin } from "./useEditCabin";
 import type { createEditCabin } from "../../services/apiCabins";
 import type { Tables } from "../../types/database.types";
+import { IMAGE_INPUT_ACCEPT, validateImageFile } from "../../utils/imageUpload";
 
 const Form = styled(BaseForm)<{ type: "modal" | "regular" }>``;
 const SecondaryButton = styled(Button)<{ variation: "secondary" }>``;
@@ -71,7 +72,7 @@ function CreateCabinForm({
   const isWorking = isCreating || isEditing;
 
   const onSubmit: SubmitHandler<CabinFormValues> = (data) => {
-    const image = getCabinImage(data.image);
+    const image = getCabinImage(data.image) ?? cabinToEdit?.image ?? undefined;
 
     if (image === undefined) return;
 
@@ -180,12 +181,22 @@ function CreateCabinForm({
         />
       </FormRow>
 
-      <FormRow label="Cabin photo" error={undefined}>
+      <FormRow label="Cabin photo" error={errors?.image?.message}>
         <FileInput
           id="image"
-          accept="image/*"
+          accept={IMAGE_INPUT_ACCEPT}
           {...register("image", {
             required: isEditMode ? false : "This field is required",
+            validate: (image) => {
+              const selectedImage = getCabinImage(image);
+
+              return (
+                selectedImage === undefined ||
+                typeof selectedImage === "string" ||
+                validateImageFile(selectedImage) ||
+                true
+              );
+            },
           })}
         />
       </FormRow>
