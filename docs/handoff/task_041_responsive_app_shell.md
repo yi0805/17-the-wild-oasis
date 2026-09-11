@@ -10,7 +10,7 @@ Make the authenticated AppLayout usable at tablet and mobile widths without rede
 
 - Base `main` SHA: `62bcfdb09c62e3f04166813e86a18d247f7b4517`.
 - Added one structural shell breakpoint at `900px`, chosen because the existing fixed `24.8rem` sidebar prevents useful main-content width below that point. The existing desktop-only 1100px padding adjustment remains.
-- Above 900px, the grid retains the 24.8rem Sidebar, Header placement, and desktop Main spacing. The Header toggle is hidden.
+- Above 900px, the grid retains the 24.8rem Sidebar, Header placement, and desktop Main spacing. The Header toggle and MobileNavigation panel are explicitly hidden, so an open narrow-screen disclosure cannot leak into the desktop shell after resize or orientation change.
 - At or below 900px, the Sidebar is removed from the visible grid, Main occupies the single content column with `2rem` horizontal padding, and shell/content `min-width` constraints prevent the shell from creating horizontal overflow. `100dvh` follows the existing `100vh` declaration as a modern viewport-height fallback.
 - AppLayout owns local, initially closed navigation state. When open, it conditionally renders a normal-flow panel below Header containing the existing MainNav component; no modal, drawer, global state, persistence, or duplicated navigation implementation was added.
 - Header has a compact `HiOutlineBars3` button with the stable accessible name `Toggle navigation`, state-matched `aria-expanded`, and `aria-controls="primary-navigation"`. Existing avatar/account controls remain and their visible account-name width is constrained on narrow screens to protect the Header layout.

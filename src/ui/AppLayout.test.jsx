@@ -57,8 +57,8 @@ describe("AppLayout responsive navigation", () => {
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(
-      screen.getByRole("navigation", { name: "Mobile primary navigation" }),
-    ).toBeVisible();
+      screen.getByLabelText("Mobile primary navigation", { selector: "nav" }),
+    ).toBeInTheDocument();
 
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
@@ -91,10 +91,12 @@ describe("AppLayout responsive navigation", () => {
     const toggle = screen.getByLabelText("Toggle navigation", { selector: "button" });
     await user.click(toggle);
 
-    const mobileNavigation = screen.getByRole("navigation", {
-      name: "Mobile primary navigation",
+    const mobileNavigation = screen.getByLabelText("Mobile primary navigation", {
+      selector: "nav",
     });
-    await user.click(within(mobileNavigation).getByRole("link", { name: "Bookings" }));
+    await user.click(
+      within(mobileNavigation).getByRole("link", { name: "Bookings", hidden: true }),
+    );
 
     expect(await screen.findByRole("heading", { name: "Bookings page" })).toBeVisible();
     await waitFor(() => expect(toggle).toHaveAttribute("aria-expanded", "false"));

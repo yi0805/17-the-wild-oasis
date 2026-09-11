@@ -56,12 +56,17 @@ const Container = styled.div`
 `;
 
 const MobileNavigation = styled.div`
+  display: none;
   grid-area: navigation;
   min-width: 0;
   padding: 1.6rem 2rem 2rem;
   background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border-subtle);
   box-shadow: var(--shadow-sm);
+
+  @media (max-width: 900px) {
+    display: block;
+  }
 `;
 
 function AppLayout() {
