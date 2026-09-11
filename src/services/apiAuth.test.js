@@ -4,6 +4,7 @@ const { supabaseMock, supabaseUrl } = vi.hoisted(() => ({
   supabaseUrl: "https://project.supabase.co",
   supabaseMock: {
     auth: {
+      getSession: vi.fn(),
       getUser: vi.fn(),
       updateUser: vi.fn(),
     },
@@ -18,7 +19,7 @@ vi.mock("./supabase", () => ({
   supabaseUrl,
 }));
 
-import { updateCurrentUser } from "./apiAuth";
+import { getCurrentuser, updateCurrentUser } from "./apiAuth";
 import { MAX_IMAGE_FILE_SIZE } from "../utils/imageUpload";
 
 const userId = "synthetic-user-id";
@@ -60,6 +61,59 @@ function mockCurrentUser({ avatarUrl = null, error = null, user = true } = {}) {
 function mockAuthUpdate({ data = { user: {} }, error = null } = {}) {
   supabaseMock.auth.updateUser.mockResolvedValue({ data, error });
 }
+
+describe("getCurrentuser", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it("rejects a session lookup failure instead of treating it as signed out", async () => {
+    supabaseMock.auth.getSession.mockResolvedValue({
+      data: { session: null },
+      error: { message: "Session lookup failed" },
+    });
+
+    await expect(getCurrentuser()).rejects.toThrow("Session lookup failed");
+    expect(supabaseMock.auth.getUser).not.toHaveBeenCalled();
+  });
+
+  it("returns null when the session lookup succeeds without a session", async () => {
+    supabaseMock.auth.getSession.mockResolvedValue({
+      data: { session: null },
+      error: null,
+    });
+
+    await expect(getCurrentuser()).resolves.toBeNull();
+    expect(supabaseMock.auth.getUser).not.toHaveBeenCalled();
+  });
+
+  it("rejects a current-user lookup failure for an existing session", async () => {
+    supabaseMock.auth.getSession.mockResolvedValue({
+      data: { session: { access_token: "synthetic-token" } },
+      error: null,
+    });
+    supabaseMock.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: "Current user lookup failed" },
+    });
+
+    await expect(getCurrentuser()).rejects.toThrow("Current user lookup failed");
+  });
+
+  it("returns the verified user for an existing session", async () => {
+    const user = { id: userId, role: "authenticated" };
+    supabaseMock.auth.getSession.mockResolvedValue({
+      data: { session: { access_token: "synthetic-token" } },
+      error: null,
+    });
+    supabaseMock.auth.getUser.mockResolvedValue({
+      data: { user },
+      error: null,
+    });
+
+    await expect(getCurrentuser()).resolves.toBe(user);
+  });
+});
 
 describe("updateCurrentUser", () => {
   beforeEach(() => {

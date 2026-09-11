@@ -42,13 +42,13 @@ function renderProtectedRoutes() {
   });
 }
 
-function renderWithCachedUnauthenticatedUser() {
+function renderWithCachedUser(user) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  queryClient.setQueryData(["user"], null);
+  queryClient.setQueryData(["user"], user);
 
-  return render(
+  const result = render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter
         initialEntries={["/protected"]}
@@ -58,6 +58,8 @@ function renderWithCachedUnauthenticatedUser() {
       </MemoryRouter>
     </QueryClientProvider>,
   );
+
+  return { ...result, queryClient };
 }
 
 describe("ProtectedRoute", () => {
@@ -73,7 +75,9 @@ describe("ProtectedRoute", () => {
     getCurrentuser.mockImplementation(() => new Promise(() => {}));
     renderProtectedRoutes();
 
-    expect(await screen.findByRole("status", { name: "Loading user" })).toBeVisible();
+    expect(
+      await screen.findByRole("status", { name: "Loading user" }),
+    ).toBeVisible();
     expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
     expect(screen.queryByText("Login page")).not.toBeInTheDocument();
   });
@@ -96,7 +100,9 @@ describe("ProtectedRoute", () => {
     );
     renderProtectedRoutes();
 
-    expect(await screen.findByRole("status", { name: "Loading user" })).toBeVisible();
+    expect(
+      await screen.findByRole("status", { name: "Loading user" }),
+    ).toBeVisible();
     expect(screen.queryByText("Login page")).not.toBeInTheDocument();
 
     resolveUser(null);
@@ -106,13 +112,54 @@ describe("ProtectedRoute", () => {
     expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
   });
 
+  it("renders an authentication query failure without redirecting to login", async () => {
+    getCurrentuser.mockRejectedValue(new Error("Auth lookup failed"));
+    renderProtectedRoutes();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Your account could not be loaded. Please try again.",
+    );
+    expect(screen.getByText("/protected")).toBeVisible();
+    expect(screen.queryByText("Login page")).not.toBeInTheDocument();
+    expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
+  });
+
   it("does not redirect while an unauthenticated cached query is still fetching", async () => {
     getCurrentuser.mockImplementation(() => new Promise(() => {}));
-    renderWithCachedUnauthenticatedUser();
+    renderWithCachedUser(null);
 
     await waitFor(() => expect(getCurrentuser).toHaveBeenCalledOnce());
     expect(screen.getByText("/protected")).toBeVisible();
     expect(screen.queryByText("Login page")).not.toBeInTheDocument();
     expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
+  });
+
+  it("shows a failed cached unauthenticated refetch instead of redirecting", async () => {
+    getCurrentuser.mockRejectedValue(new Error("Auth refresh failed"));
+    const { queryClient } = renderWithCachedUser(null);
+
+    await waitFor(() =>
+      expect(queryClient.getQueryState(["user"])?.fetchStatus).toBe("idle"),
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Your account could not be loaded. Please try again.",
+    );
+    expect(screen.getByText("/protected")).toBeVisible();
+    expect(screen.queryByText("Login page")).not.toBeInTheDocument();
+  });
+
+  it("keeps verified cached authenticated content when a background refetch fails", async () => {
+    getCurrentuser.mockRejectedValue(new Error("Auth refresh failed"));
+    const { queryClient } = renderWithCachedUser({ role: "authenticated" });
+
+    await waitFor(() =>
+      expect(queryClient.getQueryState(["user"])?.fetchStatus).toBe("idle"),
+    );
+
+    expect(screen.getByText("Protected content")).toBeVisible();
+    expect(screen.getByText("/protected")).toBeVisible();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByText("Login page")).not.toBeInTheDocument();
   });
 });
