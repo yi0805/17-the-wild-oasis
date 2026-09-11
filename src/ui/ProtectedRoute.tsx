@@ -4,6 +4,7 @@ import styled from "styled-components";
 
 import { useUser } from "../features/authentication/useUser";
 import Spinner from "./Spinner";
+import QueryError from "./QueryError";
 
 const FullPage = styled.div`
   height: 100vh;
@@ -19,21 +20,28 @@ type ProtectedRouteProps = {
 
 function ProtectedRoute({ children }: ProtectedRouteProps) {
   const navigate = useNavigate();
-  const { isLoading, isAuthenticated, isFetching } = useUser();
+  const { isLoading, isAuthenticated, isFetching, error } = useUser();
 
   useEffect(
     function () {
-      if (!isLoading && !isAuthenticated && !isFetching) {
+      if (!isLoading && !isAuthenticated && !isFetching && !error) {
         navigate("/login");
       }
-    },
-    [isLoading, isAuthenticated, isFetching, navigate],
+    }, [isLoading, isAuthenticated, isFetching, error, navigate],
   );
 
   if (isLoading) {
     return (
       <FullPage role="status" aria-label="Loading user">
         <Spinner />
+      </FullPage>
+    );
+  }
+
+  if (error && !isAuthenticated) {
+    return (
+      <FullPage>
+        <QueryError resourceName="Your account" />
       </FullPage>
     );
   }

@@ -78,7 +78,13 @@ export async function login({ email, password }: LoginCredentials) {
 }
 
 export async function getCurrentuser() {
-  const { data: session } = await getSupabaseClient().auth.getSession();
+  const { data: session, error: sessionError } =
+    await getSupabaseClient().auth.getSession();
+
+  if (sessionError) {
+    throw new Error(sessionError.message);
+  }
+
   if (!session?.session) {
     return null;
   }
