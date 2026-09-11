@@ -7,7 +7,7 @@ const StyledSidebar = styled.aside`
   background-color: var(--color-surface);
   padding: 2.4rem 2rem;
   border-right: 1px solid var(--color-border-subtle);
-  grid-row: 1 / -1;
+  grid-area: sidebar;
   display: flex;
   flex-direction: column;
   gap: 3.6rem;
@@ -17,6 +17,10 @@ const StyledSidebar = styled.aside`
   & > div:first-child {
     padding-bottom: 2.4rem;
     border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  @media (max-width: 900px) {
+    display: none;
   }
 `;
 

@@ -77,7 +77,7 @@ The verified table boundary grants authenticated users only the application oper
 
 ## Testing and CI
 
-The current suite contains **28 test files and 125 tests**. It uses Vitest, React Testing Library, and focused local Supabase/Storage mocks—tests target observable workflows and service failure behaviour rather than component implementation details.
+The current suite contains **29 test files and 129 tests**. It uses Vitest, React Testing Library, and focused local Supabase/Storage mocks—tests target observable workflows and service failure behaviour rather than component implementation details.
 
 The [GitHub Actions workflow](.github/workflows/ci.yml) runs `npm ci`, lint, typecheck, tests, and the production build on pull requests to `main` and pushes to `main`.
 
